@@ -34,7 +34,7 @@ export const api = {
 
   // 资金
   getCapital: (params) => request('/capital?' + new URLSearchParams(params)),
-  addCapital: (data) => request('/capital', { method: 'POST', body: JSON.stringify(data) }),
+  
   deleteCapital: (id) => request(`/capital/${id}`, { method: 'DELETE' }),
 
   // 品种

@@ -33,29 +33,6 @@ router.get('/', async (req, res) => {
   }
 })
 
-// 手动新增
-router.post('/', async (req, res) => {
-  try {
-    const { flow_date, type, amount, remark } = req.body
-    if (!flow_date || !type || amount == null) {
-      return res.status(400).json({ error: '缺少必填字段' })
-    }
-    const dedupKey = `${flow_date}|${type}|${Number(amount).toFixed(2)}|${remark || ''}`
-    const [result] = await pool.execute(
-      `INSERT IGNORE INTO capital_flows (flow_date, type, amount, remark, dedup_key)
-       VALUES (?, ?, ?, ?, ?)`,
-      [flow_date, type, amount, remark || '', dedupKey]
-    )
-    if (result.affectedRows === 0) {
-      res.json({ success: false, message: '记录已存在（去重）' })
-    } else {
-      res.json({ success: true, id: result.insertId })
-    }
-  } catch (err) {
-    res.status(500).json({ error: err.message })
-  }
-})
-
 // 删除
 router.delete('/:id', async (req, res) => {
   try {

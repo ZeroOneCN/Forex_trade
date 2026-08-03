@@ -25,8 +25,6 @@ export default function Capital() {
   const [jumpInput, setJumpInput] = useState('')
   const [toast, setToast] = useState(null)
 
-  const [form, setForm] = useState({ flow_date: '', type: 'deposit', amount: '', remark: '' })
-
   const loadFlows = useCallback(async () => {
     setLoading(true)
     try {
@@ -49,26 +47,6 @@ export default function Capital() {
   const handleImportDone = () => {
     setPage(1)
     loadFlows()
-  }
-
-  const handleAdd = async (e) => {
-    e.preventDefault()
-    if (!form.flow_date || !form.amount) {
-      setToast({ type: 'error', message: t('capital.saveFailed', { msg: '请填写日期和金额' }) })
-      return
-    }
-    try {
-      const res = await api.addCapital(form)
-      if (!res.success) {
-        setToast({ type: 'error', message: t('capital.saveFailed', { msg: res.message || '' }) })
-      } else {
-        setToast({ type: 'success', message: t('capital.saveSuccess') })
-        setForm({ flow_date: '', type: 'deposit', amount: '', remark: '' })
-        loadFlows()
-      }
-    } catch (err) {
-      setToast({ type: 'error', message: t('capital.saveFailed', { msg: err.message }) })
-    }
   }
 
   const handleDelete = (id) => {
@@ -153,40 +131,7 @@ export default function Capital() {
         </div>
       </div>
 
-      <div className="grid" style={{ gridTemplateColumns: '320px 1fr' }}>
-        {/* 左：新增表单 */}
-        <div className="card">
-          <div className="heading-lg mb-md">{t('capital.addTitle')}</div>
-          <form onSubmit={handleAdd} className="flex-col gap-md">
-            <div>
-              <label className="caption mb-sm" style={{ display: 'block' }}>{t('capital.startDate')}</label>
-              <input type="date" className="input" value={form.flow_date}
-                onChange={e => setForm(f => ({ ...f, flow_date: e.target.value }))} required />
-            </div>
-            <div>
-              <label className="caption mb-sm" style={{ display: 'block' }}>{t('capital.type')}</label>
-              <select className="select" value={form.type}
-                onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                {CAPITAL_TYPES.map(t_opt => <option key={t_opt.value} value={t_opt.value}>{t(t_opt.key)}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="caption mb-sm" style={{ display: 'block' }}>{t('capital.amount')}</label>
-              <input type="number" className="input" placeholder="0.00" step="0.01"
-                value={form.amount}
-                onChange={e => setForm(f => ({ ...f, amount: e.target.value }))} required />
-            </div>
-            <div>
-              <label className="caption mb-sm" style={{ display: 'block' }}>{t('capital.remark')}</label>
-              <input type="text" className="input" placeholder="可选"
-                value={form.remark}
-                onChange={e => setForm(f => ({ ...f, remark: e.target.value }))} />
-            </div>
-            <button type="submit" className="btn btn-primary w-full">{t('capital.addRecord')}</button>
-          </form>
-        </div>
-
-        {/* 右：资金流水列表 */}
+      {/* 资金流水列表 */}
         <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
           {loading ? (
             <div style={{ padding: 'var(--s-section)', display: 'flex', justifyContent: 'center' }}>
@@ -235,7 +180,6 @@ export default function Capital() {
             </div>
           )}
         </div>
-      </div>
 
       {/* 分页 + 跳转 */}
       {total > 0 && (
