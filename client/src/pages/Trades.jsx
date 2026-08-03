@@ -160,7 +160,7 @@ export default function Trades() {
                   <th>{t('trades.profit')}</th>
                   <th>{t('trades.commission')}</th>
                   <th>{t('trades.swapFee')}</th>
-                  <th>{t('trades.holdingTime')}</th>
+                  <th>{t('trades.holding')}</th>
                   <th>{t('trades.remark')}</th>
                   <th></th>
                 </tr>
