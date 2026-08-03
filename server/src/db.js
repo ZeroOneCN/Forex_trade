@@ -86,6 +86,44 @@ async function initDB() {
     )
   }
 
+  // 清理 symbols 表中带后缀的品种（标准化名称，合并/删除重复）
+  // 与 excelParser.normalizeSymbol 保持一致
+  const normalizeSymbolName = (symbol) => {
+    if (!symbol) return ''
+    let s = String(symbol).trim().toUpperCase()
+    s = s.replace(/\+$/, '')
+    s = s.replace(/\.[A-Z]{1,2}$/, '')
+    return s
+  }
+  {
+    const [symRows] = await pool.query('SELECT id, name, contract_size, leverage, digits FROM symbols')
+    const stdMap = new Map() // 标准名称 -> 已存在的记录 id
+    const toDelete = []
+    const toRename = [] // { id, newName }
+    for (const row of symRows) {
+      const norm = normalizeSymbolName(row.name)
+      if (norm === row.name) {
+        if (!stdMap.has(norm)) stdMap.set(norm, row.id)
+      } else {
+        // 带后缀
+        if (stdMap.has(norm)) {
+          // 已存在标准记录，删除带后缀记录
+          toDelete.push(row.id)
+        } else {
+          // 不存在标准记录，改名为标准名称
+          toRename.push({ id: row.id, newName: norm })
+          stdMap.set(norm, row.id)
+        }
+      }
+    }
+    for (const r of toRename) {
+      await pool.execute('UPDATE symbols SET name = ? WHERE id = ?', [r.newName, r.id])
+    }
+    for (const id of toDelete) {
+      await pool.execute('DELETE FROM symbols WHERE id = ?', [id])
+    }
+  }
+
   // 清理 capital_flows 重复数据（保留最小 id 的记录）
   await pool.query(`
     DELETE c1 FROM capital_flows c1

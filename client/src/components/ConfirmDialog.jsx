@@ -1,3 +1,5 @@
+import { useTranslation } from '../i18n/I18nProvider'
+
 /**
  * 二次确认弹窗
  * 用法：
@@ -6,9 +8,16 @@
  *   setConfirm({ message: '确认删除？', onConfirm: () => doDelete() })
  */
 export default function ConfirmDialog({ confirm, onClose }) {
+  const { t } = useTranslation()
   if (!confirm) return null
 
-  const { message, onConfirm, confirmText = '确认', cancelText = '取消', danger = true } = confirm
+  const {
+    message,
+    onConfirm,
+    confirmText = t('common.confirm'),
+    cancelText = t('common.cancel'),
+    danger = true,
+  } = confirm
 
   const handleConfirm = () => {
     onConfirm?.()
@@ -20,7 +29,7 @@ export default function ConfirmDialog({ confirm, onClose }) {
       <div className="modal-box">
         <div className="heading-lg mb-md">{message}</div>
         <div className="body-sm text-muted mb-lg" style={{ lineHeight: 1.6 }}>
-          {confirm.desc || '此操作不可撤销，请确认是否继续。'}
+          {confirm.desc || t('common.confirmWarning')}
         </div>
         <div className="flex gap-md">
           <button className="btn btn-ghost" style={{ flex: 1 }} onClick={onClose}>

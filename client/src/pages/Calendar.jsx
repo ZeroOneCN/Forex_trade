@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import { api } from '../api/client'
-
-const WEEKDAYS = ['日', '一', '二', '三', '四', '五', '六']
-const MONTH_NAMES = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月']
+import { useTranslation } from '../i18n/I18nProvider'
 
 export default function Calendar() {
+  const { t, locale } = useTranslation()
+  const MONTH_NAMES = t('calendar.monthNames')
   const today = new Date()
   const [year, setYear] = useState(today.getFullYear())
   const [month, setMonth] = useState(today.getMonth() + 1) // 1-12
@@ -14,6 +14,8 @@ export default function Calendar() {
   const [selectedCell, setSelectedCell] = useState(null)
   const [monthInput, setMonthInput] = useState('')
   const [showShare, setShowShare] = useState(false)
+
+  const WEEKDAYS = t('calendar.weekdayShort')
 
   const loadData = async () => {
     setLoading(true)
@@ -131,7 +133,7 @@ export default function Calendar() {
     return { basis, roiValue, equityAtStart, monthDeposits }
   }, [curve, year, month, monthSummary])
 
-  const fmt = (n) => Number(n).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const fmt = (n) => Number(n).toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
 
   const prevMonth = () => {
@@ -162,11 +164,11 @@ export default function Calendar() {
     <div className="fade-in">
       {/* 顶部 */}
       <div className="flex justify-between items-center mb-lg">
-        <div className="display-md">交易日历</div>
+        <div className="display-md">{t('calendar.title')}</div>
         {/* 月份导航 + 跳转 */}
         <div className="flex gap-sm items-center">
           <button className="btn btn-ghost" onClick={prevMonth} style={{ width: 40, padding: 0 }}>‹</button>
-          <span className="heading-lg" style={{ minWidth: 140, textAlign: 'center' }}>{year}年 {MONTH_NAMES[month - 1]}</span>
+          <span className="heading-lg" style={{ minWidth: 140, textAlign: 'center' }}>{t('calendar.yearMonth', { year, month: MONTH_NAMES[month - 1] })}</span>
           <button className="btn btn-ghost" onClick={nextMonth} style={{ width: 40, padding: 0 }}>›</button>
           {/* 自定义月份跳转 */}
           <form onSubmit={handleMonthJump} className="flex items-center" style={{ marginLeft: 'var(--s-sm)', gap: 'var(--s-sm)' }}>
@@ -178,10 +180,10 @@ export default function Calendar() {
               value={monthInput}
               onChange={e => setMonthInput(e.target.value)}
             />
-            <button type="submit" className="btn btn-ghost">跳转</button>
+            <button type="submit" className="btn btn-ghost">{t('calendar.jump')}</button>
           </form>
           <button className="btn btn-primary" onClick={() => setShowShare(true)} style={{ marginLeft: 'var(--s-sm)' }}>
-            分享
+            {t('calendar.share')}
           </button>
         </div>
       </div>
@@ -189,32 +191,32 @@ export default function Calendar() {
       {/* 月度汇总（含 ROI） */}
       <div className="grid mb-lg" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
         <div className="stat-card surface">
-          <div className="stat-label">本月 ROI</div>
+          <div className="stat-label">{t('calendar.monthRoi')}</div>
           <div className="stat-value" style={{ color: roi.roiValue >= 0 ? 'var(--green)' : 'var(--loss)' }}>
-            {roi.roiValue >= 0 ? '+' : ''}{roi.roiValue.toFixed(2)}%
+            {roi.roiValue >= 0 ? '+' : ''}{t('calendar.winRate', { rate: roi.roiValue.toFixed(2) })}
           </div>
           <div className="caption mt-sm">
-            基准 {fmt(roi.basis)}
-            {roi.monthDeposits > 0 ? ' · 本月入金' : ' · 上月结转'}
+            {t('calendar.roiBase')} {fmt(roi.basis)}
+            {roi.monthDeposits > 0 ? ` · ${t('calendar.monthDeposit')}` : ` · ${t('calendar.lastCarry')}`}
           </div>
         </div>
         <div className="stat-card surface">
-          <div className="stat-label">月度盈亏</div>
+          <div className="stat-label">{t('calendar.monthPnl')}</div>
           <div className="stat-value" style={{ color: monthSummary.totalProfit >= 0 ? 'var(--green)' : 'var(--loss)' }}>
             {monthSummary.totalProfit >= 0 ? '+' : ''}{fmt(monthSummary.totalProfit)}
           </div>
         </div>
         <div className="stat-card surface">
-          <div className="stat-label">盈利天数</div>
+          <div className="stat-label">{t('calendar.profitDays')}</div>
           <div className="stat-value text-profit">{monthSummary.profitDays}</div>
         </div>
         <div className="stat-card surface">
-          <div className="stat-label">亏损天数</div>
+          <div className="stat-label">{t('calendar.lossDays')}</div>
           <div className="stat-value text-loss">{monthSummary.lossDays}</div>
         </div>
         <div className="stat-card surface">
-          <div className="stat-label">胜率</div>
-          <div className="stat-value">{monthSummary.winRate}%</div>
+          <div className="stat-label">{t('calendar.winRateLabel')}</div>
+          <div className="stat-value">{t('calendar.winRate', { rate: monthSummary.winRate })}</div>
         </div>
       </div>
 
@@ -250,7 +252,7 @@ export default function Calendar() {
                         {isProfit ? '+' : ''}{fmt(cell.data.net_profit)}
                       </div>
                       <div className="cal-sub" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                        {cell.data.trades}笔 · {cell.data.win_rate}%
+                        {t('calendar.tradesCount', { n: cell.data.trades })} · {t('calendar.winRate', { rate: cell.data.win_rate })}
                       </div>
                     </div>
                   )}
@@ -264,24 +266,24 @@ export default function Calendar() {
         <div className="card">
           {selectedCell && selectedCell.data ? (
             <>
-              <div className="heading-sm mb-md">{selectedCell.date}</div>
+              <div className="heading-sm mb-md">{t('calendar.dailyTitle')} · {selectedCell.date}</div>
               <div className="flex-col gap-md">
                 <div className="flex justify-between">
-                  <span className="text-muted">净盈亏</span>
+                  <span className="text-muted">{t('calendar.netProfit')}</span>
                   <span className={`heading-sm ${selectedCell.data.net_profit >= 0 ? 'text-profit' : 'text-loss'}`}>
                     {selectedCell.data.net_profit >= 0 ? '+' : ''}{fmt(selectedCell.data.net_profit)}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted">交易笔数</span>
+                  <span className="text-muted">{t('calendar.trades')}</span>
                   <span className="heading-sm">{selectedCell.data.trades}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted">胜率</span>
-                  <span className="heading-sm">{selectedCell.data.win_rate}%</span>
+                  <span className="text-muted">{t('calendar.winRateLabel')}</span>
+                  <span className="heading-sm">{t('calendar.winRate', { rate: selectedCell.data.win_rate })}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted">盈/亏</span>
+                  <span className="text-muted">{t('calendar.win')}/{t('calendar.loss')}</span>
                   <span className="heading-sm">
                     <span className="text-profit">{selectedCell.data.wins}</span>
                     {' / '}
@@ -289,39 +291,39 @@ export default function Calendar() {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted">总手数</span>
+                  <span className="text-muted">{t('calendar.avgProfit')}</span>
                   <span className="heading-sm">{fmt(selectedCell.data.total_volume)}</span>
                 </div>
               </div>
             </>
           ) : (
             <>
-              <div className="heading-sm mb-md">月度资金</div>
+              <div className="heading-sm mb-md">{t('calendar.monthlyTitle')}</div>
               <div className="flex-col gap-md">
                 <div className="flex justify-between">
-                  <span className="text-muted">本月入金</span>
+                  <span className="text-muted">{t('calendar.totalDeposit')}</span>
                   <span className="heading-sm text-profit">{fmt(monthSummary.totalDeposits)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted">本月出金</span>
+                  <span className="text-muted">{t('calendar.totalWithdrawal')}</span>
                   <span className="heading-sm text-loss">{fmt(monthSummary.totalWithdrawals)}</span>
                 </div>
                 <div style={{ height: 1, background: 'var(--border)' }} />
                 <div className="flex justify-between">
-                  <span className="text-muted">上月底净值</span>
+                  <span className="text-muted">{t('calendar.netDeposit')}</span>
                   <span className="heading-sm">{fmt(roi.equityAtStart)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-muted">ROI 基准</span>
+                  <span className="text-muted">{t('calendar.dailyRoi')}</span>
                   <span className="heading-sm">{fmt(roi.basis)}</span>
                 </div>
                 <div style={{ height: 1, background: 'var(--border)' }} />
                 <div className="caption" style={{ lineHeight: 1.6 }}>
                   {roi.monthDeposits > 0
-                    ? '本月有入金，ROI 按本月入金计算'
+                    ? t('calendar.noDataDay')
                     : roi.equityAtStart > 0
-                      ? '上月盈利结转，ROI 按上月底净值计算'
-                      : '暂无资金数据'}
+                      ? t('calendar.carryDesc')
+                      : t('calendar.noDataDay')}
                 </div>
               </div>
             </>
@@ -333,15 +335,15 @@ export default function Calendar() {
       <div className="flex gap-lg mt-md text-muted" style={{ fontSize: 13 }}>
         <div className="flex items-center gap-sm">
           <div style={{ width: 12, height: 12, borderRadius: 3, borderLeft: '3px solid var(--green)', background: 'var(--surface-onyx)' }} />
-          <span>盈利日</span>
+          <span>{t('calendar.legendProfit')}</span>
         </div>
         <div className="flex items-center gap-sm">
           <div style={{ width: 12, height: 12, borderRadius: 3, borderLeft: '3px solid var(--loss)', background: 'var(--surface-onyx)' }} />
-          <span>亏损日</span>
+          <span>{t('calendar.legendLoss')}</span>
         </div>
         <div className="flex items-center gap-sm">
           <div style={{ width: 12, height: 12, borderRadius: 3, outline: '2px solid var(--primary)' }} />
-          <span>今天</span>
+          <span>{t('calendar.legendToday')}</span>
         </div>
       </div>
 
@@ -401,10 +403,10 @@ export default function Calendar() {
                   </svg>
                 )}
                 <div style={{ color: 'var(--on-colored)', fontSize: 18, fontWeight: 700, marginBottom: 4 }}>
-                  {year}年{MONTH_NAMES[month - 1]}
+                  {t('calendar.yearMonth', { year, month: MONTH_NAMES[month - 1] })}
                 </div>
                 <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 13 }}>
-                  {isProfit ? '本月盈利啦！' : '本月亏损了...'}
+                  {isProfit ? t('calendar.shareProfit') : t('calendar.shareLoss')}
                 </div>
               </div>
 
@@ -412,7 +414,7 @@ export default function Calendar() {
               <div style={{ padding: '20px 24px' }}>
                 {/* 盈亏金额 */}
                 <div style={{ textAlign: 'center', marginBottom: 16 }}>
-                  <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 4 }}>月度盈亏</div>
+                  <div style={{ color: 'var(--muted)', fontSize: 12, marginBottom: 4 }}>{t('calendar.monthPnl')}</div>
                   <div style={{
                     fontSize: 32,
                     fontWeight: 800,
@@ -451,15 +453,15 @@ export default function Calendar() {
                   marginBottom: 16,
                 }}>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ color: 'var(--muted)', fontSize: 11 }}>盈利天</div>
+                    <div style={{ color: 'var(--muted)', fontSize: 11 }}>{t('calendar.shareProfitDay')}</div>
                     <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--green)' }}>{profitDays}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ color: 'var(--muted)', fontSize: 11 }}>亏损天</div>
+                    <div style={{ color: 'var(--muted)', fontSize: 11 }}>{t('calendar.shareLossDay')}</div>
                     <div style={{ fontSize: 16, fontWeight: 700, color: 'var(--loss)' }}>{lossDays}</div>
                   </div>
                   <div style={{ textAlign: 'center' }}>
-                    <div style={{ color: 'var(--muted)', fontSize: 11 }}>胜率</div>
+                    <div style={{ color: 'var(--muted)', fontSize: 11 }}>{t('calendar.shareWinRate')}</div>
                     <div style={{ fontSize: 16, fontWeight: 700 }}>{winRate}%</div>
                   </div>
                 </div>
@@ -472,14 +474,14 @@ export default function Calendar() {
                   borderTop: '1px solid var(--border)',
                   paddingTop: 12,
                 }}>
-                  Pulse Trading · 交易日历
+                  {t('calendar.shareFooter')}
                 </div>
               </div>
 
               {/* 关闭按钮 */}
               <div style={{ padding: '0 24px 16px', textAlign: 'center' }}>
                 <button className="btn btn-primary w-full" onClick={() => setShowShare(false)}>
-                  关闭
+                  {t('common.close')}
                 </button>
               </div>
             </div>

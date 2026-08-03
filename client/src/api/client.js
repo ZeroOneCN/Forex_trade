@@ -9,7 +9,7 @@ async function request(path, options = {}) {
   })
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: res.statusText }))
-    throw new Error(err.error || '请求失败')
+    throw new Error(err.error || 'Request failed')
   }
   return res.json()
 }
@@ -30,6 +30,7 @@ export const api = {
   },
   deleteTrade: (id) => request(`/trades/${id}`, { method: 'DELETE' }),
   downloadTemplate: () => `${BASE}/trades/template`,
+  exportData: () => `${BASE}/trades/export`,
 
   // 资金
   getCapital: (params) => request('/capital?' + new URLSearchParams(params)),

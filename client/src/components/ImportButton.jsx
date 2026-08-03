@@ -1,7 +1,11 @@
 import { useRef, useState } from 'react'
 import { api } from '../api/client'
+import { useTranslation } from '../i18n/I18nProvider'
 
-export default function ImportButton({ onDone, label = '导入 Excel' }) {
+export default function ImportButton({ onDone, label }) {
+  const { t } = useTranslation()
+  const buttonLabel = label || t('trades.import')
+
   const inputRef = useRef(null)
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
@@ -42,14 +46,13 @@ export default function ImportButton({ onDone, label = '导入 Excel' }) {
         disabled={loading}
         onClick={() => inputRef.current?.click()}
       >
-        {loading ? <><span className="spinner" style={{ width: 16, height: 16 }} /> 导入中...</> : label}
+        {loading ? <><span className="spinner" style={{ width: 16, height: 16 }} /> {t('common.loading')}</> : buttonLabel}
       </button>
 
-      {/* 导入结果弹窗 */}
       {showModal && (result || error) && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ width: 440 }}>
-            <div className="heading-lg mb-md">{error ? '导入失败' : '导入结果'}</div>
+            <div className="heading-lg mb-md">{error ? t('trades.importFailed', { msg: '' }) : t('trades.importDone')}</div>
             {error && (
               <div className="body-sm text-loss mb-lg" style={{ padding: 'var(--s-md)', background: 'var(--surface-onyx)', borderRadius: 'var(--r-sm)' }}>
                 {error}
@@ -59,27 +62,27 @@ export default function ImportButton({ onDone, label = '导入 Excel' }) {
               <>
                 {result.sheets?.map((s, i) => (
                   <div key={i} className="body-sm text-muted mb-sm">
-                    Sheet「{s.name}」→ {s.type === 'trade' ? '交易' : s.type === 'capital' ? '资金' : '未知'}（{s.rowCount} 行）
+                    Sheet「{s.name}」→ {s.type === 'trade' ? t('nav.tradesShort') : s.type === 'capital' ? t('nav.capitalShort') : '?'}（{s.rowCount}）
                   </div>
                 ))}
                 <div style={{ height: 1, background: 'var(--border)', margin: 'var(--s-md) 0' }} />
                 {result.trades && (
                   <div className="flex justify-between mb-xs">
-                    <span className="text-muted">交易</span>
+                    <span className="text-muted">{t('nav.tradesShort')}</span>
                     <span className="body-sm">
-                      新增 <span className="text-profit">{result.trades.inserted}</span>
-                      {' / '}重复 <span className="text-muted">{result.trades.skipped}</span>
-                      {' / '}共 {result.trades.total}
+                      + <span className="text-profit">{result.trades.inserted}</span>
+                      {' / '}skip <span className="text-muted">{result.trades.skipped}</span>
+                      {' / '}{result.trades.total}
                     </span>
                   </div>
                 )}
                 {result.capital && result.capital.total > 0 && (
                   <div className="flex justify-between mb-xs">
-                    <span className="text-muted">资金</span>
+                    <span className="text-muted">{t('nav.capitalShort')}</span>
                     <span className="body-sm">
-                      新增 <span className="text-profit">{result.capital.inserted}</span>
-                      {' / '}重复 <span className="text-muted">{result.capital.skipped}</span>
-                      {' / '}共 {result.capital.total}
+                      + <span className="text-profit">{result.capital.inserted}</span>
+                      {' / '}skip <span className="text-muted">{result.capital.skipped}</span>
+                      {' / '}{result.capital.total}
                     </span>
                   </div>
                 )}
@@ -87,7 +90,7 @@ export default function ImportButton({ onDone, label = '导入 Excel' }) {
             )}
             <div className="flex gap-md mt-lg">
               <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => setShowModal(false)}>
-                确定
+                {t('common.confirm')}
               </button>
             </div>
           </div>

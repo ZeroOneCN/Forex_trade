@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
+import { useTranslation } from '../i18n/I18nProvider'
 
 /**
  * 纯 SVG 净值曲线
@@ -8,6 +9,7 @@ import { useMemo, useRef, useState } from 'react'
  * - 悬停显示当日盈亏、资金进出、累计盈亏
  */
 export default function EquityCurve({ data }) {
+  const { t, locale } = useTranslation()
   const containerRef = useRef(null)
   const [hover, setHover] = useState(null)
 
@@ -98,13 +100,13 @@ export default function EquityCurve({ data }) {
   if (!chart) {
     return (
       <div className="card" style={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <span className="text-muted">暂无数据</span>
+        <span className="text-muted">{t('curve.noData')}</span>
       </div>
     )
   }
 
   const { width, height, padding, linePath, areaPath, zeroY, yTicks, xTicks, needRotate } = chart
-  const fmt = (n) => Number(n).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const fmt = (n) => Number(n).toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const hoverSvgX = hover ? hover.svgX * (chart.width / (containerRef.current?.clientWidth || chart.width)) : 0
   const hoverSvgY = hover ? hover.svgY * (chart.height / (containerRef.current?.clientHeight || chart.height)) : 0
 
@@ -224,11 +226,11 @@ export default function EquityCurve({ data }) {
         >
           <div style={{ fontWeight: 700, marginBottom: '6px', color: 'var(--ink)' }}>{hover.point.date}</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '3px' }}>
-            <span style={{ color: 'var(--muted)' }}>交易笔数</span>
+            <span style={{ color: 'var(--muted)' }}>{t('curve.tradesCount')}</span>
             <span>{hover.point.trades || 0}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '3px' }}>
-            <span style={{ color: 'var(--muted)' }}>当日盈亏</span>
+            <span style={{ color: 'var(--muted)' }}>{t('curve.dayPnl')}</span>
             <span style={{ color: hover.point.daily_profit >= 0 ? 'var(--green)' : 'var(--loss)', fontWeight: 600 }}>
               {hover.point.daily_profit >= 0 ? '+' : ''}{fmt(hover.point.daily_profit)}
             </span>
@@ -237,31 +239,31 @@ export default function EquityCurve({ data }) {
             <>
               {hover.point.deposit > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-                  <span style={{ color: 'var(--muted)' }}>入金</span>
+                  <span style={{ color: 'var(--muted)' }}>{t('curve.deposit')}</span>
                   <span style={{ color: 'var(--green)' }}>+{fmt(hover.point.deposit)}</span>
                 </div>
               )}
               {hover.point.withdrawal > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-                  <span style={{ color: 'var(--muted)' }}>出金</span>
+                  <span style={{ color: 'var(--muted)' }}>{t('curve.withdrawal')}</span>
                   <span style={{ color: 'var(--loss)' }}>-{fmt(hover.point.withdrawal)}</span>
                 </div>
               )}
               {hover.point.bonus > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-                  <span style={{ color: 'var(--muted)' }}>赠金</span>
+                  <span style={{ color: 'var(--muted)' }}>{t('curve.bonus')}</span>
                   <span style={{ color: 'var(--green)' }}>+{fmt(hover.point.bonus)}</span>
                 </div>
               )}
               {hover.point.bonus_loss > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-                  <span style={{ color: 'var(--muted)' }}>赠金亏损</span>
+                  <span style={{ color: 'var(--muted)' }}>{t('curve.bonusLoss')}</span>
                   <span style={{ color: 'var(--loss)' }}>-{fmt(hover.point.bonus_loss)}</span>
                 </div>
               )}
               {hover.point.bonus_expired > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-                  <span style={{ color: 'var(--muted)' }}>赠金失效</span>
+                  <span style={{ color: 'var(--muted)' }}>{t('curve.bonusExpired')}</span>
                   <span style={{ color: 'var(--loss)' }}>-{fmt(hover.point.bonus_expired)}</span>
                 </div>
               )}
@@ -269,13 +271,13 @@ export default function EquityCurve({ data }) {
           )}
           <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '3px' }}>
-            <span style={{ color: 'var(--muted)' }}>累计盈亏</span>
+            <span style={{ color: 'var(--muted)' }}>{t('curve.cumulativePnl')}</span>
             <span style={{ color: hover.point.net_profit >= 0 ? 'var(--green)' : 'var(--loss)', fontWeight: 600 }}>
               {hover.point.net_profit >= 0 ? '+' : ''}{fmt(hover.point.net_profit)}
             </span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
-            <span style={{ color: 'var(--muted)' }}>累计盈亏</span>
+            <span style={{ color: 'var(--muted)' }}>{t('curve.cumulativePnl')}</span>
             <span style={{ fontWeight: 700, color: hover.point.net_profit >= 0 ? 'var(--green)' : 'var(--loss)' }}>
               {fmt(hover.point.net_profit)}
             </span>

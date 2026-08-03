@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { api } from '../api/client'
+import { useTranslation } from '../i18n/I18nProvider'
 
 const LIQUIDATION_PRESETS = [30, 50, 80, 100]
 
@@ -17,6 +18,7 @@ function newPos(symbols, defaultSymbolId) {
 }
 
 export default function Calculator() {
+  const { t, locale } = useTranslation()
   const [symbols, setSymbols] = useState([])
   const [realEquity, setRealEquity] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -30,6 +32,7 @@ export default function Calculator() {
   })
 
   const [editingSymbol, setEditingSymbol] = useState(null)
+  const [toast, setToast] = useState(null) // { type: 'success' | 'error', message: string }
 
   const loadData = async () => {
     try {
@@ -120,8 +123,9 @@ export default function Calculator() {
       })
       setSymbols(syms => syms.map(s => s.id === editingSymbol.id ? editingSymbol : s))
       setEditingSymbol(null)
+      setToast({ type: 'success', message: t('calculator.saveSuccess') })
     } catch (err) {
-      alert('保存失败：' + err.message)
+      setToast({ type: 'error', message: t('calculator.saveFailed', { msg: err.message }) })
     }
   }
 
@@ -177,35 +181,35 @@ export default function Calculator() {
     return <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--s-section)' }}><div className="spinner" /></div>
   }
 
-  const fmt = (n) => Number(n).toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  const fmt = (n) => Number(n).toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   return (
     <div className="fade-in">
-      <div className="display-md mb-lg">交易计算</div>
+      <div className="display-md mb-lg">{t('calculator.title')}</div>
 
       {/* 实时净值 + 可覆盖 */}
       <div className="grid mb-lg" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
         <div className="stat-card surface">
-          <div className="stat-label">实时账户净值</div>
+          <div className="stat-label">{t('calculator.realEquity')}</div>
           <div className="stat-value" style={{ color: realEquity >= 0 ? 'var(--green)' : 'var(--loss)' }}>{fmt(realEquity)}</div>
         </div>
         <div className="stat-card surface">
-          <div className="stat-label">计算用净值 {equityOverride && equityOverride !== String(realEquity) ? '(已覆盖)' : ''}</div>
+          <div className="stat-label">{t('calculator.calcEquity')} {equityOverride && equityOverride !== String(realEquity) ? t('calculator.calcOverride') : ''}</div>
           <div className="stat-value" style={{ color: effectiveEquity >= 0 ? 'var(--green)' : 'var(--loss)' }}>{fmt(effectiveEquity)}</div>
         </div>
         <div className="stat-card surface">
-          <div className="stat-label">总已用保证金</div>
+          <div className="stat-label">{t('calculator.totalUsedMargin')}</div>
           <div className="stat-value">{fmt(summary.totalUsedMargin)}</div>
         </div>
       </div>
 
       {/* 共享设置 */}
       <div className="card mb-lg">
-        <div className="heading-lg mb-md">共享设置</div>
+        <div className="heading-lg mb-md">{t('calculator.sharedSettings')}</div>
         <div className="flex gap-md" style={{ alignItems: 'flex-end', flexWrap: 'wrap' }}>
           {/* 默认品种 */}
           <div style={{ flex: '0 0 auto', minWidth: 140 }}>
-            <label className="caption mb-sm" style={{ display: 'block' }}>默认品种</label>
+            <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.defaultSymbol')}</label>
             <select className="select" value={defaultSymbolId || ''} onChange={e => setDefaultSymbol(Number(e.target.value))}>
               {symbols.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
             </select>
@@ -213,14 +217,14 @@ export default function Calculator() {
           {/* 净值覆盖 */}
           <div style={{ flex: '0 0 auto' }}>
             <label className="caption mb-sm" style={{ display: 'block' }}>
-              计算净值 <span className="text-muted">（留空实时）</span>
+              {t('calculator.calcEquityHint')} <span className="text-muted">{t('calculator.calcEquitySub')}</span>
             </label>
             <input type="number" className="input" style={{ width: 140 }} placeholder={fmt(realEquity)} step="100"
               value={equityOverride} onChange={e => setEquityOverride(e.target.value)} />
           </div>
           {/* 强平比例 */}
           <div style={{ flex: '1 1 auto', minWidth: 200 }}>
-            <label className="caption mb-sm" style={{ display: 'block' }}>强平比例</label>
+            <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.liquidationRatio')}</label>
             <div className="flex gap-sm" style={{ flexWrap: 'wrap', alignItems: 'center' }}>
               {LIQUIDATION_PRESETS.map(r => (
                 <button
@@ -246,8 +250,8 @@ export default function Calculator() {
 
       {/* 仓位列表 */}
       <div className="flex justify-between items-center mb-md">
-        <div className="heading-lg">仓位列表 ({positions.length})</div>
-        <button className="btn btn-green" onClick={addPosition}>+ 添加仓位</button>
+        <div className="heading-lg">{t('calculator.positionList', { n: positions.length })}</div>
+        <button className="btn btn-green" onClick={addPosition}>+ {t('calculator.addPosition')}</button>
       </div>
 
       {/* 汇总信息 */}
@@ -255,7 +259,7 @@ export default function Calculator() {
         <div className="card-onyx mb-lg" style={{ background: 'var(--surface-onyx)' }}>
           <div className="flex gap-lg" style={{ flexWrap: 'wrap' }}>
             <div>
-              <div className="caption">当前保证金水平</div>
+              <div className="caption">{t('calculator.marginLevel')}</div>
               <div className="heading-sm" style={{
                 color: summary.marginLevel > liquidationRatio * 2 ? 'var(--green)'
                   : summary.marginLevel > liquidationRatio ? 'var(--warn)' : 'var(--loss)'
@@ -264,21 +268,21 @@ export default function Calculator() {
               </div>
             </div>
             <div>
-              <div className="caption">最大可承受亏损</div>
+              <div className="caption">{t('calculator.maxLoss')}</div>
               <div className="heading-sm" style={{ color: summary.maxLoss > 0 ? 'var(--ink)' : 'var(--loss)' }}>
                 {fmt(summary.maxLoss)}
               </div>
             </div>
             {summary.totalTargetPnl !== 0 && (
               <div>
-                <div className="caption">总目标盈亏</div>
+                <div className="caption">{t('calculator.totalTargetPnl')}</div>
                 <div className="heading-sm" style={{ color: summary.totalTargetPnl >= 0 ? 'var(--green)' : 'var(--loss)' }}>
                   {summary.totalTargetPnl >= 0 ? '+' : ''}{fmt(summary.totalTargetPnl)}
                 </div>
               </div>
             )}
             <div style={{ marginLeft: 'auto' }}>
-              <div className="caption">剩余可用保证金</div>
+              <div className="caption">{t('calculator.availableMargin')}</div>
               <div className="heading-sm">{fmt(effectiveEquity - summary.totalUsedMargin)}</div>
             </div>
           </div>
@@ -294,77 +298,80 @@ export default function Calculator() {
           return (
             <div key={p.id} className="card" style={{ padding: 'var(--s-md)' }}>
               <div className="flex justify-between items-center mb-md">
-                <span className="heading-sm">#{idx + 1} · {disp.symbol.name}</span>
+                <span className="heading-sm">{t('calculator.positionNo', { n: idx + 1 })} · {disp.symbol.name}</span>
                 <button
                   className="btn-icon"
                   onClick={() => removePosition(p.id)}
                   disabled={positions.length <= 1}
                   style={positions.length <= 1 ? { opacity: 0.3 } : {}}
-                >删除</button>
+                >{t('common.delete')}</button>
               </div>
 
               <div className="flex-col gap-md">
                 <div>
-                  <label className="caption mb-sm" style={{ display: 'block' }}>品种</label>
+                  <div className="flex justify-between items-center mb-sm">
+                    <label className="caption">{t('calculator.symbol')}</label>
+                    <span className="caption text-muted">
+                      {t('calculator.contractInfo', { size: disp.symbol.contract_size, lev: disp.symbol.leverage, digits: disp.symbol.digits })}
+                    </span>
+                  </div>
                   <select className="select" value={p.symbolId} onChange={e => updatePos(p.id, 'symbolId', e.target.value)}>
                     {symbols.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                   </select>
-                  <div className="caption mt-sm">
-                    合约 {disp.symbol.contract_size} · 1:{disp.symbol.leverage} · {disp.symbol.digits}位
-                  </div>
                 </div>
 
                 <div>
-                  <label className="caption mb-sm" style={{ display: 'block' }}>方向</label>
+                  <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.direction')}</label>
                   <div className="flex gap-sm">
                     <button
                       className={`btn ${p.direction === 'buy' ? 'btn-green' : 'btn-ghost'}`}
                       onClick={() => updatePos(p.id, 'direction', 'buy')}
                       style={{ flex: 1, padding: 0 }}
-                    >买入</button>
+                    >{t('calculator.buy')}</button>
                     <button
                       className={`btn ${p.direction === 'sell' ? 'btn-danger' : 'btn-ghost'}`}
                       onClick={() => updatePos(p.id, 'direction', 'sell')}
                       style={{ flex: 1, padding: 0 }}
-                    >卖出</button>
+                    >{t('calculator.sell')}</button>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--s-sm)' }}>
+                  <div>
+                    <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.openPrice')}</label>
+                    <input type="number" className="input" placeholder="0.00" step="0.01"
+                      value={p.openPrice} onChange={e => updatePos(p.id, 'openPrice', e.target.value)} />
+                  </div>
+                  <div>
+                    <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.volume')}</label>
+                    <input type="number" className="input" placeholder="0.01" step="0.01"
+                      value={p.volume} onChange={e => updatePos(p.id, 'volume', e.target.value)} />
                   </div>
                 </div>
 
                 <div>
-                  <label className="caption mb-sm" style={{ display: 'block' }}>开仓价格</label>
-                  <input type="number" className="input" placeholder="0.00" step="0.01"
-                    value={p.openPrice} onChange={e => updatePos(p.id, 'openPrice', e.target.value)} />
-                </div>
-
-                <div>
-                  <label className="caption mb-sm" style={{ display: 'block' }}>手数</label>
-                  <input type="number" className="input" placeholder="0.01" step="0.01"
-                    value={p.volume} onChange={e => updatePos(p.id, 'volume', e.target.value)} />
-                </div>
-
-                <div>
-                  <label className="caption mb-sm" style={{ display: 'block' }}>目标价 <span className="text-muted">（可选）</span></label>
-                  <input type="number" className="input" placeholder="止盈目标" step="0.01"
+                  <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.targetPrice')} <span className="text-muted">{t('calculator.targetPriceOptional')}</span></label>
+                  <input type="number" className="input" placeholder={t('calculator.targetPricePlaceholder')} step="0.01"
                     value={p.targetPrice} onChange={e => updatePos(p.id, 'targetPrice', e.target.value)} />
                 </div>
 
                 {disp.incomplete ? (
                   <div className="body-sm text-muted" style={{ padding: 'var(--s-sm)', background: 'var(--surface-onyx)', borderRadius: 'var(--r-sm)', textAlign: 'center' }}>
-                    填写开仓价和手数
+                    {t('calculator.fillHint')}
                   </div>
                 ) : (
                   <div className="flex-col gap-sm">
                     <div className="flex justify-between">
-                      <span className="caption">已用保证金</span>
+                      <span className="caption">{t('calculator.usedMargin')}</span>
                       <span className="heading-sm">{fmt(disp.usedMargin)}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="caption">每点价值</span>
+                      <span className="caption">{t('calculator.pipValue')}</span>
                       <span className="heading-sm">{fmt(disp.pipValue)}</span>
                     </div>
                     {disp.liquidationPrice !== null && (
                       <div className="flex justify-between" style={{ background: 'var(--surface-black)', padding: 'var(--s-sm) var(--s-md)', borderRadius: 'var(--r-sm)', margin: 'var(--s-xs) 0' }}>
-                        <span className="caption">强平价 ≤{liquidationRatio}%</span>
+                        <span className="caption">{t('calculator.liquidationPrice', { ratio: liquidationRatio })}</span>
                         <span className="heading-sm text-loss" style={{ fontSize: 18 }}>
                           {disp.liquidationPrice.toFixed(disp.digits)}
                         </span>
@@ -372,7 +379,7 @@ export default function Calculator() {
                     )}
                     {disp.targetPnl !== null && (
                       <div className="flex justify-between">
-                        <span className="caption">目标盈亏</span>
+                        <span className="caption">{t('calculator.targetPnl')}</span>
                         <span className="heading-sm" style={{ color: disp.targetPnl >= 0 ? 'var(--green)' : 'var(--loss)' }}>
                           {disp.targetPnl >= 0 ? '+' : ''}{fmt(disp.targetPnl)}
                         </span>
@@ -390,27 +397,27 @@ export default function Calculator() {
       {editingSymbol && (
         <div className="modal-overlay">
           <div className="modal-box" style={{ width: 400 }}>
-            <div className="heading-lg mb-md">编辑品种 · {editingSymbol.name}</div>
+            <div className="heading-lg mb-md">{t('calculator.editSymbol', { name: editingSymbol.name })}</div>
             <div className="flex-col gap-md">
               <div>
-                <label className="caption mb-sm" style={{ display: 'block' }}>合约大小（1 手 = ? 单位）</label>
+                <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.contractSize')}</label>
                 <input type="number" className="input" value={editingSymbol.contract_size}
                   onChange={e => setEditingSymbol({ ...editingSymbol, contract_size: e.target.value })} />
               </div>
               <div>
-                <label className="caption mb-sm" style={{ display: 'block' }}>杠杆（1:?）</label>
+                <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.leverage')}</label>
                 <input type="number" className="input" value={editingSymbol.leverage}
                   onChange={e => setEditingSymbol({ ...editingSymbol, leverage: e.target.value })} />
               </div>
               <div>
-                <label className="caption mb-sm" style={{ display: 'block' }}>价格小数位</label>
+                <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.digits')}</label>
                 <input type="number" className="input" value={editingSymbol.digits}
                   onChange={e => setEditingSymbol({ ...editingSymbol, digits: e.target.value })} />
               </div>
             </div>
             <div className="flex gap-md mt-lg">
-              <button className="btn btn-ghost" onClick={() => setEditingSymbol(null)} style={{ flex: 1 }}>取消</button>
-              <button className="btn btn-primary" onClick={handleSaveSymbol} style={{ flex: 1 }}>保存</button>
+              <button className="btn btn-ghost" onClick={() => setEditingSymbol(null)} style={{ flex: 1 }}>{t('common.cancel')}</button>
+              <button className="btn btn-primary" onClick={handleSaveSymbol} style={{ flex: 1 }}>{t('common.save')}</button>
             </div>
           </div>
         </div>
@@ -418,7 +425,7 @@ export default function Calculator() {
 
       {/* 品种管理入口 */}
       <div className="mt-lg">
-        <div className="heading-sm mb-md">品种参数管理</div>
+        <div className="heading-sm mb-md">{t('calculator.symbolParams')}</div>
         <div className="flex gap-sm" style={{ flexWrap: 'wrap' }}>
           {symbols.map(s => (
             <button
@@ -432,6 +439,27 @@ export default function Calculator() {
           ))}
         </div>
       </div>
+
+      {/* 主题提示弹窗（成功/失败） */}
+      {toast && (
+        <div className="modal-overlay">
+          <div className="modal-box" style={{ width: 380 }}>
+            <div className="heading-lg mb-md">{toast.type === 'success' ? t('common.success') : t('common.failed')}</div>
+            <div className="body-sm text-muted mb-lg" style={{ lineHeight: 1.6 }}>
+              {toast.message}
+            </div>
+            <div className="flex gap-md">
+              <button
+                className={toast.type === 'success' ? 'btn btn-primary' : 'btn btn-danger'}
+                style={{ flex: 1 }}
+                onClick={() => setToast(null)}
+              >
+                {t('common.close')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

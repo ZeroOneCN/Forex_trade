@@ -194,13 +194,16 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   font-family: var(--font-display);
   font-size: 32px;
   font-weight: 700;
-  line-height: 1.1;
+  line-height: 1.4;
+  padding: 2px 0;
+  display: block;
+  overflow: visible;
 }
 .stat-card .stat-label {
   font-size: 14px;
   font-weight: 500;
   color: var(--muted);
-  margin-bottom: var(--s-xs);
+  margin-bottom: var(--s-sm);
 }
 
 /* ===== 表格 ===== */
@@ -373,4 +376,130 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   padding: var(--s-xl);
   width: 380px;
   max-width: 90vw;
+}
+
+/* ============================================
+   Responsive — 全局自适应 / H5 适配
+   ============================================ */
+
+/* 安全区域（iPhone 刘海屏等） */
+@supports (padding: max(0px)) {
+  body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+  .layout-content { padding-bottom: calc(var(--s-section) + env(safe-area-inset-bottom)); }
+}
+
+/* 屏幕 <= 768px（平板） */
+@media (max-width: 768px) {
+  :root {
+    --s-section: 28px;
+    --s-xxl: 28px;
+    --s-xl: 20px;
+    --btn-h: 38px;
+  }
+  .display-xl { font-size: 36px; }
+  .display-lg { font-size: 28px; }
+  .display-md { font-size: 22px; }
+  .heading-lg { font-size: 19px; }
+  .heading-sm { font-size: 16px; }
+
+  .stat-card .stat-value { font-size: 26px; padding: 1px 0; }
+  .card, .card-onyx { padding: var(--s-md); }
+  .grid { gap: var(--s-md); }
+}
+
+/* 屏幕 <= 640px（手机横屏 / 大屏手机） */
+@media (max-width: 640px) {
+  :root {
+    --s-section: 20px;
+    --s-xxl: 24px;
+    --s-xl: 16px;
+    --s-lg: 16px;
+    --btn-h: 36px;
+    --btn-px: var(--s-md);
+    --btn-font: 13px;
+  }
+  body { font-size: 15px; }
+  .display-xl { font-size: 30px; }
+  .display-lg { font-size: 24px; }
+  .display-md { font-size: 20px; }
+  .heading-lg { font-size: 18px; }
+  .heading-sm { font-size: 15px; }
+  .body-lg { font-size: 16px; }
+
+  .layout-content { padding: var(--s-section) var(--s-md); }
+
+  .stat-card { padding: var(--s-md); border-radius: var(--r-md); }
+  .stat-card .stat-value { font-size: 22px; line-height: 1.35; }
+  .stat-card .stat-label { font-size: 13px; margin-bottom: var(--s-xs); }
+
+  .modal-box { width: 92vw; padding: var(--s-md); border-radius: var(--r-md); }
+}
+
+/* 屏幕 <= 480px（手机竖屏 / 小屏） */
+@media (max-width: 480px) {
+  :root {
+    --s-section: 16px;
+    --s-xl: 14px;
+    --s-lg: 14px;
+    --s-md: 12px;
+    --r-lg: 14px;
+    --r-md: 12px;
+    --r-sm: 10px;
+  }
+  body { font-size: 14px; }
+  .display-xl { font-size: 26px; }
+  .display-lg { font-size: 22px; }
+  .display-md { font-size: 18px; }
+  .heading-lg { font-size: 16px; }
+  .heading-sm { font-size: 14px; }
+  .body { font-size: 14px; }
+  .body-sm { font-size: 13px; }
+  .caption { font-size: 11px; }
+
+  .layout-nav-wrap { padding: var(--s-sm) var(--s-md); }
+  .layout-nav { flex-direction: column; align-items: stretch; gap: var(--s-sm); }
+  .layout-nav-links { gap: var(--s-sm); overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .layout-nav-links::-webkit-scrollbar { height: 0; display: none; }
+  .nav-link { padding: 6px 10px; font-size: 13px; }
+
+  .stat-card .stat-value { font-size: 20px; }
+  .card, .card-onyx { padding: var(--s-sm) var(--s-md); }
+
+  .btn { height: 34px; font-size: 12px; padding: 0 var(--s-sm); border-radius: var(--r-xs); }
+  .btn-icon { height: 26px; padding: 0 var(--s-xs); font-size: 11px; }
+  .input, .select { height: 34px; padding: 0 var(--s-sm); font-size: 13px; border-radius: var(--r-xs); }
+
+  .table th, .table td { padding: 10px 8px; font-size: 12px; }
+}
+
+/* 屏幕 <= 360px（小屏手机） */
+@media (max-width: 360px) {
+  :root {
+    --s-section: 12px;
+  }
+  .display-xl { font-size: 22px; }
+  .display-lg { font-size: 20px; }
+  .display-md { font-size: 16px; }
+  .stat-card .stat-value { font-size: 18px; }
+  .heading-lg { font-size: 15px; }
+  .heading-sm { font-size: 13px; }
+}
+
+/* 高对比 / 大字体无障碍 */
+@media (prefers-contrast: more) {
+  :root { --border: rgba(128,128,128,0.5); }
+}
+
+/* 减少动画（用户系统设置） */
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+  .btn:active { transform: none; }
+  .fade-in { animation: none; opacity: 1; }
+}
+
+/* 横屏优化（窄高度） */
+@media (max-height: 500px) and (orientation: landscape) {
+  .layout-content { padding-top: var(--s-md); padding-bottom: var(--s-md); }
+  .stat-card { padding: var(--s-sm) var(--s-md); }
+  .stat-card .stat-value { font-size: 22px; }
 }

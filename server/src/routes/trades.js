@@ -176,6 +176,58 @@ router.post('/import', upload.single('file'), async (req, res) => {
   }
 })
 
+// 导出多 Sheet Excel（交易 + 资金）
+router.get('/export', async (req, res) => {
+  try {
+    const ExcelJS = require('exceljs')
+    const wb = new ExcelJS.Workbook()
+
+    // Sheet 1: 交易记录
+    const ws1 = wb.addWorksheet('交易记录')
+    const tradeHeaders = ['ID', '仓位ID', '日期', '交易品种', '订单类型', '开仓价格',
+      '手数', '手续费', '平仓价格', '盈亏金额', '隔夜费', '开仓时间', '平仓时间', '持仓时间', '备注']
+    ws1.addRow(tradeHeaders)
+    ws1.getRow(1).font = { bold: true }
+
+    const [trades] = await pool.query(
+      'SELECT id, position_id, trade_date, symbol, order_type, open_price, volume, ' +
+      'commission, close_price, profit, swap_fee, open_time, close_time, holding_time, remark ' +
+      'FROM trades ORDER BY trade_date DESC, close_time DESC'
+    )
+    for (const t of trades) {
+      ws1.addRow([
+        t.id, t.position_id, t.trade_date, t.symbol, t.order_type,
+        t.open_price, t.volume, t.commission, t.close_price,
+        t.profit, t.swap_fee, t.open_time, t.close_time, t.holding_time, t.remark
+      ])
+    }
+
+    // 自动列宽
+    ws1.columns.forEach(col => { col.width = 18 })
+
+    // Sheet 2: 资金流水
+    const ws2 = wb.addWorksheet('资金流水')
+    ws2.addRow(['日期', '类型', '金额', '备注'])
+    ws2.getRow(1).font = { bold: true }
+
+    const [flows] = await pool.query(
+      'SELECT flow_date, type, amount, remark FROM capital_flows ORDER BY flow_date DESC'
+    )
+    for (const f of flows) {
+      ws2.addRow([f.flow_date, f.type, f.amount, f.remark])
+    }
+    ws2.columns.forEach(col => { col.width = 18 })
+
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+    res.setHeader('Content-Disposition', 'attachment; filename="gold_export.xlsx"')
+    await wb.xlsx.write(res)
+    res.end()
+  } catch (err) {
+    console.error('[trades] export error:', err)
+    res.status(500).json({ error: err.message })
+  }
+})
+
 // 下载导入模板
 router.get('/template', async (req, res) => {
   const ExcelJS = require('exceljs')
