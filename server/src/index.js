@@ -52,11 +52,15 @@ function getLANIP() {
 initDB().then(() => {
   app.listen(PORT, '0.0.0.0', () => {
     const lanIP = getLANIP()
-    console.log(`\n  ➜  Local:   http://localhost:${PORT}`)
+    console.log(`\n  🚀 服务已启动 (生产模式)`)
+    console.log(`  ───────────────────────────────`)
+    console.log(`  ➜  前端:   http://localhost:${PORT}`)
+    console.log(`  ➜  API:     http://localhost:${PORT}/api/health`)
     if (lanIP) {
-      console.log(`  ➜  Network: http://${lanIP}:${PORT}`)
+      console.log(`  ➜  局域网: http://${lanIP}:${PORT}`)
     }
-    console.log(`  ➜  API:     http://localhost:${PORT}/api/health\n`)
+    console.log(`  ───────────────────────────────`)
+    console.log(`  开发模式请使用: npm run dev\n`)
   })
 }).catch(err => {
   console.error('[server] failed to start:', err)
