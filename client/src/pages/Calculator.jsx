@@ -13,7 +13,8 @@ function newPos(symbols, defaultSymbolId) {
     direction: 'buy',
     openPrice: '',
     volume: '0.01',
-    targetPrice: ''
+    targetPrice: '',
+    stopLossPrice: ''
   }
 }
 
@@ -148,6 +149,7 @@ export default function Calculator() {
         pipValue: 0,
         liquidationPrice: null,
         targetPnl: null,
+        stopLossPnl: null,
         incomplete: true
       }
     }
@@ -181,7 +183,17 @@ export default function Calculator() {
       }
     }
 
-    return { symbol: sym, digits, usedMargin, pipValue, liquidationPrice, targetPnl, incomplete: false, insufficientMargin, price, vol }
+    let stopLossPnl = null
+    if (p.stopLossPrice) {
+      const sl = Number(p.stopLossPrice)
+      if (sl) {
+        stopLossPnl = p.direction === 'buy'
+          ? (sl - price) * pipValue
+          : (price - sl) * pipValue
+      }
+    }
+
+    return { symbol: sym, digits, usedMargin, pipValue, liquidationPrice, targetPnl, stopLossPnl, incomplete: false, insufficientMargin, price, vol }
   }
 
   if (loading) {
@@ -366,6 +378,11 @@ export default function Calculator() {
                   <input type="number" className="input" placeholder={t('calculator.targetPricePlaceholder')} step="0.01"
                     value={p.targetPrice} onChange={e => updatePos(p.id, 'targetPrice', e.target.value)} />
                 </div>
+                <div>
+                  <label className="caption mb-sm" style={{ display: 'block' }}>{t('calculator.stopLossPrice')} <span className="text-muted">{t('calculator.stopLossPriceOptional')}</span></label>
+                  <input type="number" className="input" placeholder={t('calculator.stopLossPricePlaceholder')} step="0.01"
+                    value={p.stopLossPrice} onChange={e => updatePos(p.id, 'stopLossPrice', e.target.value)} />
+                </div>
 
                 {disp.incomplete ? (
                   <div className="body-sm text-muted" style={{ padding: 'var(--s-sm)', background: 'var(--surface-onyx)', borderRadius: 'var(--r-sm)', textAlign: 'center' }}>
@@ -398,6 +415,14 @@ export default function Calculator() {
                         <span className="caption">{t('calculator.targetPnl')}</span>
                         <span className="heading-sm" style={{ color: disp.targetPnl >= 0 ? 'var(--green)' : 'var(--loss)' }}>
                           {disp.targetPnl >= 0 ? '+' : ''}{fmt(disp.targetPnl)}
+                        </span>
+                      </div>
+                    )}
+                    {disp.stopLossPnl !== null && (
+                      <div className="flex justify-between">
+                        <span className="caption">{t('calculator.stopLossPnl')}</span>
+                        <span className="heading-sm" style={{ color: disp.stopLossPnl >= 0 ? 'var(--green)' : 'var(--loss)' }}>
+                          {disp.stopLossPnl >= 0 ? '+' : ''}{fmt(disp.stopLossPnl)}
                         </span>
                       </div>
                     )}
