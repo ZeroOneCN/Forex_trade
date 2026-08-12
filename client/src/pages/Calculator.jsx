@@ -155,13 +155,20 @@ export default function Calculator() {
     const usedMargin = (vol * contractSize * price) / leverage
     const pipValue = vol * contractSize
 
+    // 保证金不足检测
+    const insufficientMargin = summary.totalUsedMargin > effectiveEquity
+
     // 每个仓位的强平价（基于共享净值的最大可承受亏损）
-    const maxLoss = effectiveEquity - summary.totalUsedMargin * (liquidationRatio / 100)
-    let liquidationPrice
-    if (p.direction === 'buy') {
-      liquidationPrice = price - maxLoss / pipValue
-    } else {
-      liquidationPrice = price + maxLoss / pipValue
+    let liquidationPrice = null
+    if (!insufficientMargin) {
+      const maxLoss = effectiveEquity - summary.totalUsedMargin * (liquidationRatio / 100)
+      if (p.direction === 'buy') {
+        liquidationPrice = price - maxLoss / pipValue
+      } else {
+        liquidationPrice = price + maxLoss / pipValue
+      }
+      // 截断浮点精度到品种小数位
+      liquidationPrice = Number(liquidationPrice.toFixed(digits))
     }
 
     let targetPnl = null
@@ -174,7 +181,7 @@ export default function Calculator() {
       }
     }
 
-    return { symbol: sym, digits, usedMargin, pipValue, liquidationPrice, targetPnl, incomplete: false, price, vol }
+    return { symbol: sym, digits, usedMargin, pipValue, liquidationPrice, targetPnl, incomplete: false, insufficientMargin, price, vol }
   }
 
   if (loading) {
@@ -257,6 +264,11 @@ export default function Calculator() {
       {/* 汇总信息 */}
       {summary.totalUsedMargin > 0 && (
         <div className="card-onyx mb-lg" style={{ background: 'var(--surface-onyx)' }}>
+          {summary.totalUsedMargin > effectiveEquity && (
+            <div className="body-sm" style={{ color: 'var(--loss)', marginBottom: 'var(--s-sm)', padding: 'var(--s-sm) var(--s-md)', background: 'var(--surface-black)', borderRadius: 'var(--r-sm)' }}>
+              {t('calculator.insufficientMarginDesc', { margin: fmt(summary.totalUsedMargin), equity: fmt(effectiveEquity) })}
+            </div>
+          )}
           <div className="flex gap-lg" style={{ flexWrap: 'wrap' }}>
             <div>
               <div className="caption">{t('calculator.marginLevel')}</div>
@@ -369,7 +381,11 @@ export default function Calculator() {
                       <span className="caption">{t('calculator.pipValue')}</span>
                       <span className="heading-sm">{fmt(disp.pipValue)}</span>
                     </div>
-                    {disp.liquidationPrice !== null && (
+                    {disp.insufficientMargin ? (
+                      <div className="body-sm" style={{ color: 'var(--loss)', padding: 'var(--s-sm) var(--s-md)', background: 'var(--surface-black)', borderRadius: 'var(--r-sm)', textAlign: 'center' }}>
+                        {t('calculator.insufficientMargin')}
+                      </div>
+                    ) : disp.liquidationPrice !== null && (
                       <div className="flex justify-between" style={{ background: 'var(--surface-black)', padding: 'var(--s-sm) var(--s-md)', borderRadius: 'var(--r-sm)', margin: 'var(--s-xs) 0' }}>
                         <span className="caption">{t('calculator.liquidationPrice', { ratio: liquidationRatio })}</span>
                         <span className="heading-sm text-loss" style={{ fontSize: 18 }}>

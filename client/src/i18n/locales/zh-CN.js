@@ -212,6 +212,8 @@ export const zhCN = {
     digits: '价格小数位',
     saveSuccess: '品种参数已保存',
     saveFailed: '保存失败：{msg}',
+    insufficientMargin: '保证金不足，无法开仓',
+    insufficientMarginDesc: '总保证金 {margin} 超过可用净值 {equity}，请调整手数或增加净值',
   },
 
   // 资金动态

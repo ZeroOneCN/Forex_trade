@@ -212,6 +212,8 @@ export const enUS = {
     digits: 'Price Digits',
     saveSuccess: 'Symbol saved',
     saveFailed: 'Save failed: {msg}',
+    insufficientMargin: 'Insufficient margin to open position',
+    insufficientMarginDesc: 'Total margin {margin} exceeds equity {equity}, adjust lots or increase equity',
   },
 
   // Capital
