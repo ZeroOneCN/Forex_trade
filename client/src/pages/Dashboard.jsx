@@ -37,16 +37,16 @@ export default function Dashboard() {
   return (
     <div className="fade-in">
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))' }}>
-        <div className="stat-card">
+        <div className="stat-card enter-stagger" style={{ '--i': 0 }}>
           <div className="stat-label">{t('dashboard.equity')}</div>
           <div className="stat-value">{fmt(overview.equity)}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 1 }}>
           <div className="stat-label">{t('dashboard.netProfit')}</div>
           <div className="stat-value" style={{ color: overview.net_profit >= 0 ? 'var(--green)' : 'var(--loss)' }}>
             {overview.net_profit >= 0 ? '+' : ''}{fmt(overview.net_profit)}
           </div>
-          <div style={{ display: 'flex', gap: 'var(--s-md)', marginTop: 'var(--s-xs)', fontSize: 12 }}>
+          <div className="stat-sub" style={{ display: 'flex', gap: 'var(--s-md)' }}>
             <span className="text-muted">
               {t('dashboard.deposit')} <span className="text-profit">{fmt(overview.total_deposit + overview.total_bonus - overview.total_bonus_loss)}</span>
             </span>
@@ -55,20 +55,20 @@ export default function Dashboard() {
             </span>
           </div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 2 }}>
           <div className="stat-label">{t('dashboard.totalTrades')}</div>
           <div className="stat-value">{overview.total_trades}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 3 }}>
           <div className="stat-label">{t('dashboard.winRate')}</div>
           <div className="stat-value">{fmtPct(overview.win_rate)}</div>
-          <div className="body-sm" style={{ opacity: 0.7, marginTop: 'var(--s-xs)' }}>
+          <div className="stat-sub">
             {t('dashboard.winLose', { win: overview.win_count, loss: overview.loss_count })}
           </div>
         </div>
       </div>
 
-      <div className="card mt-lg">
+      <div className="card mt-lg enter-stagger" style={{ '--i': 4 }}>
         <div className="flex justify-between items-center mb-md">
           <div className="heading-lg">{t('dashboard.equityCurve')}</div>
           <div className="body-sm text-muted">{t('dashboard.curveSub')}</div>
@@ -77,7 +77,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid mt-lg" style={{ gridTemplateColumns: '1fr 1fr' }}>
-        <div className="card">
+        <div className="card enter-stagger" style={{ '--i': 5 }}>
           <div className="heading-lg mb-md">{t('dashboard.symbolDist')}</div>
           {overview.symbol_distribution.map(s => {
             const maxCount = Math.max(...overview.symbol_distribution.map(x => x.count))
@@ -94,12 +94,11 @@ export default function Dashboard() {
                   borderRadius: 'var(--r-full)',
                   overflow: 'hidden'
                 }}>
-                  <div style={{
+                  <div className="stat-bar-fill" style={{
                     height: '100%',
                     width: `${widthPct}%`,
                     background: s.net_profit >= 0 ? 'var(--green)' : 'var(--loss)',
                     borderRadius: 'var(--r-full)',
-                    transition: 'width 0.3s'
                   }} />
                 </div>
                 <div className={`body-sm mt-sm ${s.net_profit >= 0 ? 'text-profit' : 'text-loss'}`}>
@@ -110,7 +109,7 @@ export default function Dashboard() {
           })}
         </div>
 
-        <div className="card">
+        <div className="card enter-stagger" style={{ '--i': 6 }}>
           <div className="heading-lg mb-md">{t('dashboard.capitalOverview')}</div>
           <div className="flex-col gap-md">
             <div className="flex justify-between">

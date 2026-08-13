@@ -208,22 +208,22 @@ export default function Calculator() {
 
       {/* 实时净值 + 可覆盖 */}
       <div className="grid mb-lg" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 0 }}>
           <div className="stat-label">{t('calculator.realEquity')}</div>
           <div className="stat-value" style={{ color: realEquity >= 0 ? 'var(--green)' : 'var(--loss)' }}>{fmt(realEquity)}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 1 }}>
           <div className="stat-label">{t('calculator.calcEquity')} {equityOverride && equityOverride !== String(realEquity) ? t('calculator.calcOverride') : ''}</div>
           <div className="stat-value" style={{ color: effectiveEquity >= 0 ? 'var(--green)' : 'var(--loss)' }}>{fmt(effectiveEquity)}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 2 }}>
           <div className="stat-label">{t('calculator.totalUsedMargin')}</div>
           <div className="stat-value">{fmt(summary.totalUsedMargin)}</div>
         </div>
       </div>
 
       {/* 共享设置 */}
-      <div className="card mb-lg">
+      <div className="card mb-lg enter-stagger" style={{ '--i': 3 }}>
         <div className="heading-lg mb-md">{t('calculator.sharedSettings')}</div>
         <div className="flex gap-md" style={{ alignItems: 'flex-end', flexWrap: 'wrap' }}>
           {/* 默认品种 */}

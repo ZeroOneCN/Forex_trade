@@ -128,7 +128,7 @@ export default function Trades() {
         <button className="btn btn-ghost" onClick={() => { setFilters({ symbol: '', type: '', startDate: '', endDate: '' }); setSearch(''); setSearchInput(''); setPage(1) }}>{t('common.reset')}</button>
       </div>
 
-      <div className="card" style={{ padding: 0, overflow: 'hidden', position: 'relative' }}>
+      <div className="card enter-stagger" style={{ '--i': 0, padding: 0, overflow: 'hidden', position: 'relative' }}>
         {loading && trades.length > 0 && (
           <div style={{
             position: 'absolute', inset: 0,

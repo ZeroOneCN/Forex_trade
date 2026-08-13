@@ -91,31 +91,31 @@ export default function Insights() {
 
       {/* 核心指标 - 一行六列 */}
       <div className="grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
-        <div className="stat-card">
+        <div className="stat-card enter-stagger" style={{ '--i': 0 }}>
           <div className="stat-label">{t('insights.totalTrades')}</div>
           <div className="stat-value">{fmtInt(d.total_trades)}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 1 }}>
           <div className="stat-label">{t('insights.winRate')}</div>
           <div className="stat-value" style={{ color: d.win_rate >= 60 ? 'var(--green)' : 'var(--loss)' }}>{fmtPct(d.win_rate)}</div>
           <div className="stat-sub">{t('insights.winLose', { w: d.win_count, l: d.loss_count })}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 2 }}>
           <div className="stat-label">{t('insights.netProfit')}</div>
           <div className="stat-value" style={{ color: d.net_profit >= 0 ? 'var(--green)' : 'var(--loss)' }}>
             {d.net_profit >= 0 ? '+' : ''}{fmt(d.net_profit)}
           </div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 3 }}>
           <div className="stat-label">{t('insights.profitFactor')}</div>
           <div className="stat-value" style={{ color: riskColor }}>{d.profit_factor}</div>
           <div className="stat-sub">{riskLabel}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 4 }}>
           <div className="stat-label">{t('insights.maxDrawdown')}</div>
           <div className="stat-value" style={{ color: 'var(--loss)' }}>{fmt(d.max_drawdown)}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 5 }}>
           <div className="stat-label">{t('insights.expectancy')}</div>
           <div className="stat-value" style={{ color: d.expectancy >= 0 ? 'var(--green)' : 'var(--loss)' }}>{fmt(d.expectancy)}</div>
         </div>
@@ -124,7 +124,7 @@ export default function Insights() {
       {/* 盈亏比分析 + 连续盈亏 + 手数分析 - 三列 */}
       <div className="grid mt-lg" style={{ gridTemplateColumns: 'repeat(3, 1fr)' }}>
         {/* 盈亏比分析 */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="card enter-stagger" style={{ '--i': 6, display: 'flex', flexDirection: 'column' }}>
           <div className="heading-lg mb-md">{t('insights.pnlAnalysis')}</div>
           <div className="flex-col gap-md" style={{ flex: 1 }}>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
@@ -151,7 +151,7 @@ export default function Insights() {
           </div>
         </div>
         {/* 连续盈亏 */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="card enter-stagger" style={{ '--i': 7, display: 'flex', flexDirection: 'column' }}>
           <div className="heading-lg mb-md">{t('insights.streakAnalysis')}</div>
           <div className="flex-col gap-md" style={{ flex: 1 }}>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
@@ -178,7 +178,7 @@ export default function Insights() {
           </div>
         </div>
         {/* 手数分析 */}
-        <div className="card" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="card enter-stagger" style={{ '--i': 8, display: 'flex', flexDirection: 'column' }}>
           <div className="heading-lg mb-md">{t('insights.volumeAnalysis')}</div>
           <div className="flex-col gap-md" style={{ flex: 1 }}>
             <div className="grid" style={{ gridTemplateColumns: '1fr 1fr' }}>
@@ -211,7 +211,7 @@ export default function Insights() {
       </div>
 
       {/* 月度趋势 */}
-      <div className="card mt-lg">
+      <div className="card mt-lg enter-stagger" style={{ '--i': 9 }}>
         <div className="heading-lg mb-md">{t('insights.monthlyTrend')}</div>
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -246,7 +246,7 @@ export default function Insights() {
       {/* 品种分析 + 大额亏损 - 两列 */}
       <div className="grid mt-lg" style={{ gridTemplateColumns: '1fr 1fr' }}>
         {/* 品种分析 */}
-        <div className="card">
+        <div className="card enter-stagger" style={{ '--i': 10 }}>
           <div className="heading-lg mb-md">{t('insights.symbolAnalysis')}</div>
           <div style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
@@ -274,7 +274,7 @@ export default function Insights() {
           </div>
         </div>
         {/* 大额亏损 */}
-        <div className="card">
+        <div className="card enter-stagger" style={{ '--i': 11 }}>
           <div className="heading-lg mb-md">{t('insights.bigLosses')}</div>
           <div className="stat-card surface" style={{ display: 'inline-flex', alignItems: 'baseline', gap: 'var(--s-sm)', marginBottom: 'var(--s-md)' }}>
             <div className="stat-label">{t('insights.bigLossStats', { n: d.big_loss_count })}</div>
@@ -309,7 +309,7 @@ export default function Insights() {
 
       {/* 阈值检测 */}
       {thresholds && thresholds.thresholds && thresholds.thresholds.length > 0 && (
-        <div className="card mt-lg">
+        <div className="card mt-lg enter-stagger" style={{ '--i': 12 }}>
           <div className="heading-lg mb-md">{t('insights.thresholdAnalysis')}</div>
           <div className="body-sm mb-md text-muted" style={{ lineHeight: 1.6 }}>
             {t('insights.thresholdDesc')} {t('insights.thresholdNotable')}
@@ -360,7 +360,7 @@ export default function Insights() {
       )}
 
       {/* 改进建议 */}
-      <div className="card mt-lg">
+      <div className="card mt-lg enter-stagger" style={{ '--i': 13 }}>
         <div className="heading-lg mb-md">{t('insights.suggestions')}</div>
         <div className="flex-col gap-md">
           {d.profit_factor < 1 && (

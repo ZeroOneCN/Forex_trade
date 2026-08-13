@@ -190,31 +190,31 @@ export default function Calendar() {
 
       {/* 月度汇总（含 ROI） */}
       <div className="grid mb-lg" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))' }}>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 0 }}>
           <div className="stat-label">{t('calendar.monthRoi')}</div>
           <div className="stat-value" style={{ color: roi.roiValue >= 0 ? 'var(--green)' : 'var(--loss)' }}>
             {roi.roiValue >= 0 ? '+' : ''}{t('calendar.winRate', { rate: roi.roiValue.toFixed(2) })}
           </div>
-          <div className="caption mt-sm">
+          <div className="stat-sub">
             {t('calendar.roiBase')} {fmt(roi.basis)}
             {roi.monthDeposits > 0 ? ` · ${t('calendar.monthDeposit')}` : ` · ${t('calendar.lastCarry')}`}
           </div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 1 }}>
           <div className="stat-label">{t('calendar.monthPnl')}</div>
           <div className="stat-value" style={{ color: monthSummary.totalProfit >= 0 ? 'var(--green)' : 'var(--loss)' }}>
             {monthSummary.totalProfit >= 0 ? '+' : ''}{fmt(monthSummary.totalProfit)}
           </div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 2 }}>
           <div className="stat-label">{t('calendar.profitDays')}</div>
           <div className="stat-value text-profit">{monthSummary.profitDays}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 3 }}>
           <div className="stat-label">{t('calendar.lossDays')}</div>
           <div className="stat-value text-loss">{monthSummary.lossDays}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 4 }}>
           <div className="stat-label">{t('calendar.winRateLabel')}</div>
           <div className="stat-value">{t('calendar.winRate', { rate: monthSummary.winRate })}</div>
         </div>
@@ -223,7 +223,7 @@ export default function Calendar() {
       {/* 日历网格 + 详情 */}
       <div className="grid" style={{ gridTemplateColumns: '1fr 260px', gap: 'var(--s-md)' }}>
         {/* 日历 */}
-        <div className="card" style={{ padding: 'var(--s-md)' }}>
+        <div className="card enter-stagger" style={{ '--i': 5, padding: 'var(--s-md)' }}>
           {/* 星期头 */}
           <div className="calendar-grid mb-sm">
             {WEEKDAYS.map(w => (
@@ -263,7 +263,7 @@ export default function Calendar() {
         </div>
 
         {/* 右侧：当日详情 / 月度资金 */}
-        <div className="card">
+        <div className="card enter-stagger" style={{ '--i': 6 }}>
           {selectedCell && selectedCell.data ? (
             <>
               <div className="heading-sm mb-md">{t('calendar.dailyTitle')} · {selectedCell.date}</div>

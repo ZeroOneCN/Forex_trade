@@ -1,5 +1,5 @@
 /* ============================================
-   PULSE Trading — Discord 设计系统
+   PULSE Trading — 交易分析系统
    深色/浅色主题、动态网格背景
    ============================================ */
 
@@ -45,6 +45,18 @@
   --btn-h: 40px;
   --btn-px: var(--s-lg);
   --btn-font: 14px;
+
+  /* 缓动曲线 — 比默认 ease 更自然的运动 */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* 阴影 */
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.12);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.15);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.2);
+  --shadow-xl: 0 12px 40px rgba(0,0,0,0.25);
 }
 
 /* ===== 深色主题（默认） ===== */
@@ -140,22 +152,24 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   transition: opacity 0.15s, transform 0.1s, filter 0.15s;
   white-space: nowrap;
 }
-.btn:active { transform: scale(0.97); }
+.btn:active { transform: scale(0.96); }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-primary { background: var(--primary); color: var(--on-colored); }
-.btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.15); box-shadow: 0 0 20px rgba(88,101,242,0.3); }
 
 .btn-green { background: var(--green); color: var(--on-colored); }
-.btn-green:hover:not(:disabled) { filter: brightness(1.05); }
+.btn-green:hover:not(:disabled) { filter: brightness(1.1); box-shadow: 0 0 16px rgba(0,192,118,0.25); }
 
 .btn-magenta { background: var(--magenta); color: var(--on-colored); }
+.btn-magenta:hover:not(:disabled) { filter: brightness(1.1); }
 
 .btn-ghost { background: var(--surface-indigo); color: var(--ink); }
-.btn-ghost:hover:not(:disabled) { background: var(--surface-hover); }
+.btn-ghost:hover:not(:disabled) { background: var(--surface-hover); transform: translateY(-1px); }
 
 .btn-white { background: var(--ink); color: var(--surface-indigo); }
 .btn-danger { background: var(--loss); color: var(--on-colored); }
+.btn-danger:hover:not(:disabled) { filter: brightness(1.1); }
 
 /* 图标按钮（表格内删除等） */
 .btn-icon {
@@ -176,18 +190,36 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .btn-icon:hover { background: var(--surface-hover); color: var(--ink); }
 
 /* ===== 卡片 ===== */
-.card { background: var(--surface-indigo); border-radius: var(--r-lg); padding: var(--s-xl); }
-.card-onyx { background: var(--surface-onyx); border-radius: var(--r-lg); padding: var(--s-xl); }
+.card {
+  background: var(--surface-indigo);
+  border-radius: var(--r-lg);
+  padding: var(--s-xl);
+  transition: transform 0.25s var(--ease-out-quart), box-shadow 0.25s var(--ease-out-quart);
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.card-onyx {
+  background: var(--surface-onyx);
+  border-radius: var(--r-lg);
+  padding: var(--s-xl);
+  transition: transform 0.25s var(--ease-out-quart), box-shadow 0.25s var(--ease-out-quart);
+}
+.card-onyx:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 .card-magenta { background: var(--magenta); border-radius: var(--r-xl); padding: var(--s-section); color: var(--on-colored); }
 .card-primary { background: var(--primary); border-radius: var(--r-xl); padding: var(--s-xxl); color: var(--on-colored); }
 
-/* ===== 统计卡片（纯色，无渐变） ===== */
+/* ===== 统计卡片 ===== */
 .stat-card {
   background: var(--surface-indigo);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
   padding: var(--s-xl);
   color: var(--ink);
+  transition: transform 0.25s var(--ease-out-quart), box-shadow 0.25s var(--ease-out-quart), border-color 0.25s var(--ease-out-quart);
+}
+.stat-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+  border-color: rgba(88,101,242,0.2);
 }
 .stat-card.surface { background: var(--surface-onyx); }
 .stat-card .stat-value {
@@ -204,6 +236,11 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   font-weight: 500;
   color: var(--muted);
   margin-bottom: var(--s-sm);
+}
+.stat-card .stat-sub {
+  font-size: 12px;
+  color: var(--muted-dim);
+  margin-top: var(--s-xs);
 }
 
 /* ===== 表格 ===== */
@@ -223,7 +260,10 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   border-bottom: 1px solid var(--border);
   font-size: 14px;
 }
+.table tr { transition: background 0.15s; }
 .table tr:hover td { background: var(--surface-hover); }
+.table tr td:first-child { border-radius: var(--r-xs) 0 0 var(--r-xs); }
+.table tr td:last-child { border-radius: 0 var(--r-xs) var(--r-xs) 0; }
 
 /* ===== 输入框 ===== */
 .input, .select {
@@ -234,9 +274,13 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   padding: 0 var(--s-md);
   height: var(--btn-h);
   width: 100%;
-  transition: border-color 0.15s;
+  transition: border-color 0.2s var(--ease-out-quart), box-shadow 0.2s var(--ease-out-quart), background 0.2s;
 }
-.input:focus, .select:focus { border-color: var(--primary); }
+.input:focus, .select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(88,101,242,0.15);
+  background: var(--surface-indigo);
+}
 .input::placeholder { color: var(--muted-dim); }
 
 /* 移除 number 输入框的上下浮动按钮 */
@@ -300,9 +344,36 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 ::-webkit-scrollbar-thumb:hover { background: var(--surface-hover); }
 
 /* ===== 动画 ===== */
+/* 基础淡入 */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-.fade-in { animation: fadeIn 0.3s ease-out; }
+.fade-in { animation: fadeIn 0.35s var(--ease-out-quart) both; }
 
+/* 交错入场 — 配合 style="--i: N" 使用 */
+@keyframes enterUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+.enter-stagger { animation: enterUp 0.45s var(--ease-out-quart) both; animation-delay: calc(var(--i, 0) * 80ms); }
+.enter-stagger-fast { animation: enterUp 0.35s var(--ease-out-quart) both; animation-delay: calc(var(--i, 0) * 50ms); }
+
+/* 数值脉冲 — 盈利/亏损闪烁 */
+@keyframes pulseGlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+.pulse-profit { animation: pulseGlow 2s var(--ease-in-out) infinite; }
+.pulse-loss { animation: pulseGlow 2s var(--ease-in-out) infinite; }
+
+/* 骨架屏闪光 */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-onyx) 25%, var(--surface-hover) 50%, var(--surface-onyx) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--r-xs);
+}
+
+/* 旋转 */
 @keyframes spin { to { transform: rotate(360deg); } }
 .spinner {
   width: 20px; height: 20px;
@@ -310,6 +381,23 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   border-top-color: var(--ink);
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
+}
+
+/* 导航指示器滑动 */
+@keyframes slideIn {
+  from { transform: scaleX(0); opacity: 0; }
+  to { transform: scaleX(1); opacity: 1; }
+}
+
+/* 统计条填充动画 */
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+.stat-bar-fill {
+  transform-origin: left;
+  animation: barGrow 0.6s var(--ease-out-quart) both;
+  animation-delay: calc(var(--i, 0) * 50ms);
 }
 
 /* ===== Tooltip ===== */
@@ -347,7 +435,8 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   min-height: 48px;
   text-align: center;
 }
-.calendar-cell:hover { transform: scale(1.05); z-index: 5; }
+.calendar-cell:hover { transform: scale(1.06); z-index: 5; }
+.calendar-cell:active { transform: scale(0.98); }
 .calendar-cell.empty { background: var(--border); }
 .calendar-cell.has-data { background: var(--surface-onyx); }
 .calendar-cell.profit-bg { background: var(--green); }
@@ -369,13 +458,20 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
   align-items: center;
   justify-content: center;
   z-index: 300;
+  animation: overlayIn 0.2s var(--ease-out-quart);
 }
+@keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
 .modal-box {
   background: var(--surface-indigo);
   border-radius: var(--r-lg);
   padding: var(--s-xl);
   width: 380px;
   max-width: 90vw;
+  animation: modalIn 0.25s var(--ease-out-quart);
+}
+@keyframes modalIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* ============================================
@@ -492,8 +588,16 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 
 /* 减少动画（用户系统设置） */
 @media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
   body::before { animation: none; }
   .btn:active { transform: none; }
+  .card:hover, .card-onyx:hover, .stat-card:hover { transform: none; box-shadow: none; }
+  .btn-ghost:hover:not(:disabled) { transform: none; }
+  .enter-stagger, .enter-stagger-fast { animation: none; opacity: 1; }
   .fade-in { animation: none; opacity: 1; }
 }
 

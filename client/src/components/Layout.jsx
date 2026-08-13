@@ -79,6 +79,7 @@ function LanguageSwitcher({ t, locale, setLocale, locales }) {
 export default function Layout({ children }) {
   const location = useLocation()
   const { t, locale, setLocale, locales } = useTranslation()
+  const [scrolled, setScrolled] = useState(false)
 
   const NAV_ITEMS = [
     { path: '/', label: t('nav.dashboard'), short: t('nav.dashboardShort') },
@@ -101,6 +102,13 @@ export default function Layout({ children }) {
     localStorage.setItem('currentTab', location.pathname)
   }, [location.pathname])
 
+  // 滚动时添加阴影
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   const toggleTheme = () => {
     setTheme(th => th === 'dark' ? 'light' : 'dark')
   }
@@ -114,6 +122,8 @@ export default function Layout({ children }) {
         position: 'sticky',
         top: 0,
         zIndex: 100,
+        transition: 'box-shadow 0.3s var(--ease-out-quart)',
+        boxShadow: scrolled ? '0 2px 20px rgba(0,0,0,0.15)' : 'none',
       }}>
         <div className="layout-nav" style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--s-xl)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--s-lg)' }}>
@@ -146,10 +156,34 @@ export default function Layout({ children }) {
                     fontWeight: 600,
                     color: isActive ? 'var(--on-colored)' : 'var(--muted)',
                     background: isActive ? 'var(--primary)' : 'transparent',
-                    transition: 'all 0.15s',
+                    transition: 'all 0.2s var(--ease-out-quart)',
+                    position: 'relative',
+                    overflow: 'hidden',
                   })}
+                  onMouseEnter={e => {
+                    if (!e.currentTarget.classList.contains('active')) {
+                      e.currentTarget.style.background = 'var(--surface-hover)';
+                    }
+                  }}
+                  onMouseLeave={e => {
+                    if (!e.currentTarget.classList.contains('active')) {
+                      e.currentTarget.style.background = 'transparent';
+                    }
+                  }}
                 >
                   {item.label}
+                  {isActive && (
+                    <span style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      left: '20%',
+                      right: '20%',
+                      height: 2,
+                      background: 'var(--on-colored)',
+                      borderRadius: '1px 1px 0 0',
+                      animation: 'slideIn 0.2s var(--ease-out-quart)',
+                    }} />
+                  )}
                 </NavLink>
               ))}
             </nav>

@@ -105,25 +105,25 @@ export default function Capital() {
 
       {/* 资金汇总卡片 */}
       <div className="grid mb-lg" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))' }}>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 0 }}>
           <div className="stat-label">{t('capital.bonusIn')}</div>
           <div className="stat-value text-profit">{fmt(totalBonus)}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 1 }}>
           <div className="stat-label">{t('capital.remainingBonus')}</div>
           <div className="stat-value" style={{ color: remainingBonus >= 0 ? 'var(--green)' : 'var(--loss)' }}>
             {fmt(remainingBonus)}
           </div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 2 }}>
           <div className="stat-label">{t('capital.totalDeposit')}</div>
           <div className="stat-value text-profit">{fmt(totalDeposit)}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 3 }}>
           <div className="stat-label">{t('capital.totalWithdrawal')}</div>
           <div className="stat-value text-loss">{fmt(totalWithdrawal)}</div>
         </div>
-        <div className="stat-card surface">
+        <div className="stat-card surface enter-stagger" style={{ '--i': 4 }}>
           <div className="stat-label">{t('capital.netDeposit')}</div>
           <div className="stat-value" style={{ color: netCapital >= 0 ? 'var(--green)' : 'var(--loss)' }}>
             {fmt(netCapital)}
@@ -132,7 +132,7 @@ export default function Capital() {
       </div>
 
       {/* 资金流水列表 */}
-        <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div className="card enter-stagger" style={{ '--i': 5, padding: 0, overflow: 'hidden' }}>
           {loading ? (
             <div style={{ padding: 'var(--s-section)', display: 'flex', justifyContent: 'center' }}>
               <div className="spinner" />
