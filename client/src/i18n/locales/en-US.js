@@ -262,6 +262,9 @@ export const enUS = {
 
   // Insights
   insights: {
+    title: 'Insights',
+    subtitle: 'Real-time analysis of trading data with automated diagnosis and suggestions',
+    lastUpdated: 'Updated',
     totalTrades: 'Total Trades',
     winRate: 'Win Rate',
     netProfit: 'Net P&L',

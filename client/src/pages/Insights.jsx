@@ -14,23 +14,28 @@ export default function Insights() {
   const [thresholds, setThresholds] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [lastUpdated, setLastUpdated] = useState(null)
   const { t, locale } = useTranslation()
 
   const fmt = (n) => Number(n).toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
   const fmtPct = (n) => Number(n) + '%'
   const fmtInt = (n) => Number(n).toLocaleString()
 
-  useEffect(() => {
+  const loadData = () => {
+    setLoading(true)
     Promise.all([
       fetchJSON('/analysis/insights'),
       fetchJSON('/analysis/thresholds')
     ]).then(([ins, thr]) => {
       setInsights(ins)
       setThresholds(thr)
+      setLastUpdated(new Date())
     }).catch(err => {
       setError(err.message)
     }).finally(() => setLoading(false))
-  }, [])
+  }
+
+  useEffect(() => { loadData() }, [])
 
   if (loading) {
     return <div style={{ display: 'flex', justifyContent: 'center', padding: 'var(--s-section)' }}><div className="spinner" /></div>
@@ -56,9 +61,24 @@ export default function Insights() {
 
   return (
     <div className="fade-in">
+      {/* 页面标题 + 刷新 */}
+      <div className="flex justify-between items-center mb-lg">
+        <div>
+          <div className="heading-xl">{t('insights.title')}</div>
+          <div className="body-sm text-muted">{t('insights.subtitle')}</div>
+        </div>
+        <div className="flex items-center gap-sm">
+          {lastUpdated && (
+            <span className="caption text-muted">{t('insights.lastUpdated')}: {lastUpdated.toLocaleTimeString(locale === 'zh-CN' ? 'zh-CN' : 'en-US')}</span>
+          )}
+          <button className="btn btn-ghost" onClick={loadData} disabled={loading} style={{ width: 36, height: 36, padding: 0, fontSize: 16 }}>
+            {loading ? '...' : '↻'}
+          </button>
+        </div>
+      </div>
 
-      {/* 核心指标 */}
-      <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))' }}>
+      {/* 核心指标 - 一行六列 */}
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
         <div className="stat-card">
           <div className="stat-label">{t('insights.totalTrades')}</div>
           <div className="stat-value">{fmtInt(d.total_trades)}</div>

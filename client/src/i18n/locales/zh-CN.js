@@ -262,6 +262,9 @@ export const zhCN = {
 
   // 分析洞察
   insights: {
+    title: '分析洞察',
+    subtitle: '基于交易数据的实时分析报告，自动诊断问题并提供改进建议',
+    lastUpdated: '更新于',
     totalTrades: '总交易',
     winRate: '胜率',
     netProfit: '净盈亏',
