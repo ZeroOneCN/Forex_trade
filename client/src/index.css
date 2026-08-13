@@ -453,9 +453,7 @@ input[type="number"] {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(24, 26, 56, 0.45);
-  backdrop-filter: blur(6px) saturate(1.1);
-  -webkit-backdrop-filter: blur(6px) saturate(1.1);
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -469,6 +467,7 @@ input[type="number"] {
   padding: var(--s-xl);
   width: 380px;
   max-width: 90vw;
+  box-shadow: var(--shadow-xl);
   animation: modalIn 0.25s var(--ease-out-quart);
 }
 @keyframes modalIn {
