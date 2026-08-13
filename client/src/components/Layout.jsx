@@ -171,18 +171,22 @@ export default function Layout({ children }) {
                     }
                   }}
                 >
-                  {item.label}
-                  {isActive && (
-                    <span style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      left: '20%',
-                      right: '20%',
-                      height: 2,
-                      background: 'var(--on-colored)',
-                      borderRadius: '1px 1px 0 0',
-                      animation: 'slideIn 0.2s var(--ease-out-quart)',
-                    }} />
+                  {({ isActive }) => (
+                    <>
+                      {item.label}
+                      {isActive && (
+                        <span style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: '20%',
+                          right: '20%',
+                          height: 2,
+                          background: 'var(--on-colored)',
+                          borderRadius: '1px 1px 0 0',
+                          animation: 'slideIn 0.2s var(--ease-out-quart)',
+                        }} />
+                      )}
+                    </>
                   )}
                 </NavLink>
               ))}
