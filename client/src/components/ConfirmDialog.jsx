@@ -19,9 +19,12 @@ export default function ConfirmDialog({ confirm, onClose }) {
     danger = true,
   } = confirm
 
-  const handleConfirm = () => {
-    onConfirm?.()
-    onClose()
+  const handleConfirm = async () => {
+    try {
+      await Promise.resolve(onConfirm?.())
+    } finally {
+      onClose()
+    }
   }
 
   return (

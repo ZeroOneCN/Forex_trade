@@ -284,12 +284,12 @@ input, select, textarea { font-family: inherit; font-size: inherit; }
 .input::placeholder { color: var(--muted-dim); }
 
 /* 移除 number 输入框的上下浮动按钮 */
-.input[type="number"]::-webkit-inner-spin-button,
-.input[type="number"]::-webkit-outer-spin-button {
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-.input[type="number"] {
+input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
