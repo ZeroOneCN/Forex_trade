@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { api } from '../api/client'
 import { useTranslation } from '../i18n/I18nProvider'
 
@@ -23,6 +23,21 @@ export default function Calculator() {
   const [symbols, setSymbols] = useState([])
   const [realEquity, setRealEquity] = useState(0)
   const [loading, setLoading] = useState(true)
+  const containerRef = useRef(null)
+
+  // 禁止所有 number 输入框通过鼠标滚轮改变数值
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const handler = (e) => {
+      if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+        e.preventDefault()
+        e.target.blur()
+      }
+    }
+    el.addEventListener('wheel', handler, { passive: false })
+    return () => el.removeEventListener('wheel', handler)
+  }, [])
 
   const [positions, setPositions] = useState([])
   const [equityOverride, setEquityOverride] = useState('')
@@ -203,7 +218,7 @@ export default function Calculator() {
   const fmt = (n) => Number(n).toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 
   return (
-    <div className="fade-in">
+    <div className="fade-in" ref={containerRef}>
       <div className="display-md mb-lg">{t('calculator.title')}</div>
 
       {/* 实时净值 + 可覆盖 */}

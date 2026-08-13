@@ -7,10 +7,12 @@ import './index.css'
 
 // 全局禁止 number 输入框通过鼠标滚轮改变数值
 document.addEventListener('wheel', (e) => {
-  if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
-    e.target.blur()
+  const target = e.target
+  if (target.tagName === 'INPUT' && target.type === 'number') {
+    e.preventDefault()
+    target.blur()
   }
-}, { passive: true })
+}, { passive: false })
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
