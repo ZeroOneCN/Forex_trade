@@ -5,6 +5,7 @@ import Trades from './pages/Trades'
 import Calendar from './pages/Calendar'
 import Calculator from './pages/Calculator'
 import Capital from './pages/Capital'
+import Insights from './pages/Insights'
 
 export default function App() {
   return (
@@ -15,6 +16,7 @@ export default function App() {
         <Route path="/calendar" element={<Calendar />} />
         <Route path="/calculator" element={<Calculator />} />
         <Route path="/capital" element={<Capital />} />
+        <Route path="/insights" element={<Insights />} />
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Layout>

@@ -86,6 +86,7 @@ export default function Layout({ children }) {
     { path: '/calendar', label: t('nav.calendar'), short: t('nav.calendarShort') },
     { path: '/calculator', label: t('nav.calculator'), short: t('nav.calculatorShort') },
     { path: '/capital', label: t('nav.capital'), short: t('nav.capitalShort') },
+    { path: '/insights', label: t('nav.insights'), short: t('nav.insightsShort') },
   ]
 
   const current = NAV_ITEMS.find(n => n.path === location.pathname) || NAV_ITEMS[0]

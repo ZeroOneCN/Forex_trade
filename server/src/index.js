@@ -8,6 +8,7 @@ const tradesRouter = require('./routes/trades')
 const capitalRouter = require('./routes/capital')
 const symbolsRouter = require('./routes/symbols')
 const statsRouter = require('./routes/stats')
+const analysisRouter = require('./routes/analysis')
 
 const app = express()
 const PORT = process.env.PORT || 3001
@@ -25,6 +26,7 @@ app.use('/api/trades', tradesRouter)
 app.use('/api/capital', capitalRouter)
 app.use('/api/symbols', symbolsRouter)
 app.use('/api/stats', statsRouter)
+app.use('/api/analysis', analysisRouter)
 
 // 健康检查
 app.get('/api/health', (req, res) => {
