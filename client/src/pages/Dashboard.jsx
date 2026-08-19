@@ -68,10 +68,9 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="card mt-lg enter-stagger" style={{ '--i': 4 }}>
+      <div className="card mt-lg enter-stagger curve-card" style={{ '--i': 4 }}>
         <div className="flex justify-between items-center mb-md">
           <div className="heading-lg">{t('dashboard.equityCurve')}</div>
-          <div className="body-sm text-muted">{t('dashboard.curveSub')}</div>
         </div>
         <EquityCurve data={curve} />
       </div>

@@ -414,6 +414,25 @@ input[type="number"] {
   box-shadow: 0 4px 12px rgba(0,0,0,0.4);
 }
 
+/* 收益曲线 Portal Tooltip（渲染到 body，使用 fixed 定位） */
+.curve-tooltip {
+  position: fixed;
+  background: var(--surface-black);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: var(--s-sm) var(--s-md);
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 9999;
+  min-width: 200px;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  animation: tooltipIn 0.15s var(--ease-out-quart);
+}
+@keyframes tooltipIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
 /* ===== 日历（紧凑·居中） ===== */
 .calendar-grid {
   display: grid;

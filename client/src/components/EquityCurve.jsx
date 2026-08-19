@@ -1,17 +1,23 @@
 import { useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useTranslation } from '../i18n/I18nProvider'
 
 /**
- * 纯 SVG 净值曲线
+ * 纯 SVG 净值曲线（Portal Tooltip 版本）
  * - 0 基线居中（Y 轴对称范围）
  * - 盈利部分绿色，亏损部分红色（线条+填充均分色）
  * - X 轴日期完整显示，密集时斜放 -45°
  * - 悬停显示当日盈亏、资金进出、累计盈亏
+ * - Tooltip 使用 Portal 渲染到 body，避免被兄弟卡片遮挡
  */
 export default function EquityCurve({ data }) {
   const { t, locale } = useTranslation()
   const containerRef = useRef(null)
-  const [hover, setHover] = useState(null)
+  const [tooltip, setTooltip] = useState(null)
+  const [tooltipPos, setTooltipPos] = useState({ left: 0, top: 0 })
+
+  // 稳定的渐变/滤镜 ID（组件整个生命周期不变）
+  const uid = useRef(`c${Math.random().toString(36).slice(2, 8)}`).current
 
   const chart = useMemo(() => {
     if (!data || data.length === 0) return null
@@ -64,6 +70,7 @@ export default function EquityCurve({ data }) {
     return { width, height, padding, linePath, areaPath, zeroY, yTicks, xTicks, needRotate, xPos, yScale, data }
   }, [data])
 
+  // 更新 tooltip 位置（跟随鼠标，使用 viewport 坐标，通过 Portal 渲染到 body）
   const handleMouseMove = (e) => {
     if (!chart) return
     const svg = e.currentTarget
@@ -86,16 +93,21 @@ export default function EquityCurve({ data }) {
     const py = chart.yScale(point.net_profit)
     const px = chart.xPos(nearestIdx)
 
-    const scaleY = chart.height / rect.height
-    setHover({
-      svgX: px / scaleX,
-      svgY: py / scaleY,
-      point,
-      index: nearestIdx
+    // 计算 SVG 坐标对应的 viewport 位置
+    const svgX = rect.left + (px / scaleX)
+    const svgY = rect.top + (py / (chart.height / rect.height))
+
+    setTooltip({ point, index: nearestIdx })
+    setTooltipPos({
+      left: Math.min(svgX + 16, window.innerWidth - 240),
+      top: Math.max(svgY - 80, 12)
     })
   }
 
-  const handleMouseLeave = () => setHover(null)
+  const handleMouseLeave = () => {
+    setTooltip(null)
+    setTooltipPos({ left: 0, top: 0 })
+  }
 
   if (!chart) {
     return (
@@ -107,14 +119,18 @@ export default function EquityCurve({ data }) {
 
   const { width, height, padding, linePath, areaPath, zeroY, yTicks, xTicks, needRotate } = chart
   const fmt = (n) => Number(n).toLocaleString(locale === 'zh-CN' ? 'zh-CN' : 'en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  const hoverSvgX = hover ? hover.svgX * (chart.width / (containerRef.current?.clientWidth || chart.width)) : 0
-  const hoverSvgY = hover ? hover.svgY * (chart.height / (containerRef.current?.clientHeight || chart.height)) : 0
+  const hoverPoint = tooltip?.point
+
+  // 曲线渐变 ID（每个实例唯一）
+  const gradId = `${uid}-pos`
+  const gradNegId = `${uid}-neg`
+  const glowId = `${uid}-glow`
 
   return (
     <div ref={containerRef} style={{ position: 'relative', width: '100%' }}>
       <svg
         viewBox={`0 0 ${width} ${height}`}
-        style={{ width: '100%', height: 'auto' }}
+        style={{ width: '100%', height: 'auto', display: 'block' }}
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
@@ -127,6 +143,24 @@ export default function EquityCurve({ data }) {
           <clipPath id="clip-negative">
             <rect x="0" y={zeroY} width={width} height={height - zeroY} />
           </clipPath>
+          {/* 盈利区渐变填充 */}
+          <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--green)" stopOpacity="0.35" />
+            <stop offset="100%" stopColor="var(--green)" stopOpacity="0.02" />
+          </linearGradient>
+          {/* 亏损区渐变填充 */}
+          <linearGradient id={gradNegId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="var(--loss)" stopOpacity="0.02" />
+            <stop offset="100%" stopColor="var(--loss)" stopOpacity="0.35" />
+          </linearGradient>
+          {/* 曲线发光滤镜 */}
+          <filter id={glowId} x="-10%" y="-10%" width="120%" height="120%">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
         {/* 网格线 */}
@@ -139,10 +173,11 @@ export default function EquityCurve({ data }) {
             y2={t.y}
             stroke="var(--border)"
             strokeWidth="1"
+            opacity="0.6"
           />
         ))}
 
-        {/* 0 基线（居中） */}
+        {/* 0 基线（居中虚线） */}
         <line
           x1={padding.left}
           y1={zeroY}
@@ -154,37 +189,62 @@ export default function EquityCurve({ data }) {
         />
         <text x={padding.left - 8} y={zeroY + 4} textAnchor="end" fill="var(--muted)" fontSize="11" fontWeight="600">0</text>
 
-        {/* 填充区域：0 以上绿色，0 以下红色 */}
-        <path d={areaPath} fill="rgba(53,237,126,0.15)" clipPath="url(#clip-positive)" />
-        <path d={areaPath} fill="rgba(242,63,67,0.15)" clipPath="url(#clip-negative)" />
+        {/* 渐变填充区域：0 以上绿色，0 以下红色 */}
+        <path d={areaPath} fill={`url(#${gradId})`} clipPath="url(#clip-positive)" />
+        <path d={areaPath} fill={`url(#${gradNegId})`} clipPath="url(#clip-negative)" />
 
-        {/* 曲线：0 以上绿色，0 以下红色 */}
-        <path d={linePath} fill="none" stroke="var(--green)" strokeWidth="2.5" clipPath="url(#clip-positive)" />
-        <path d={linePath} fill="none" stroke="var(--loss)" strokeWidth="2.5" clipPath="url(#clip-negative)" />
+        {/* 曲线发光层 */}
+        <path d={linePath} fill="none" stroke="var(--green)" strokeWidth="5" opacity="0.2" clipPath="url(#clip-positive)" filter={`url(#${glowId})`} />
+        <path d={linePath} fill="none" stroke="var(--loss)" strokeWidth="5" opacity="0.2" clipPath="url(#clip-negative)" filter={`url(#${glowId})`} />
+
+        {/* 曲线主线条 */}
+        <path d={linePath} fill="none" stroke="var(--green)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" clipPath="url(#clip-positive)" />
+        <path d={linePath} fill="none" stroke="var(--loss)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" clipPath="url(#clip-negative)" />
 
         {/* 悬停指示线 + 点 */}
-        {hover && (
-          <>
-            <line
-              x1={hoverSvgX}
-              y1={padding.top}
-              x2={hoverSvgX}
-              y2={height - padding.bottom}
-              stroke="var(--muted)"
-              strokeWidth="1"
-              strokeDasharray="3 3"
-              opacity="0.5"
-            />
-            <circle
-              cx={hoverSvgX}
-              cy={hoverSvgY}
-              r="5"
-              fill="var(--magenta)"
-              stroke="var(--ink)"
-              strokeWidth="2"
-            />
-          </>
-        )}
+        {tooltip && (() => {
+          const px = chart.xPos(tooltip.index)
+          const py = chart.yScale(tooltip.point.net_profit)
+          const svgEl = containerRef.current?.querySelector('svg')
+          if (!svgEl) return null
+          const rect = svgEl.getBoundingClientRect()
+          const scaleX = chart.width / rect.width
+          const scaleY = chart.height / rect.height
+          const vpx = px / scaleX
+          const vpy = py / scaleY
+          return (
+            <g>
+              <line
+                x1={px}
+                y1={padding.top}
+                x2={px}
+                y2={height - padding.bottom}
+                stroke="var(--muted)"
+                strokeWidth="1"
+                strokeDasharray="3 3"
+                opacity="0.5"
+              />
+              <circle
+                cx={px}
+                cy={py}
+                r="5"
+                fill="var(--magenta)"
+                stroke="var(--ink)"
+                strokeWidth="2.5"
+              />
+              {/* 外圈光晕 */}
+              <circle
+                cx={px}
+                cy={py}
+                r="10"
+                fill="none"
+                stroke="var(--magenta)"
+                strokeWidth="1"
+                opacity="0.3"
+              />
+            </g>
+          )
+        })()}
 
         {/* Y 轴刻度文字 */}
         {yTicks.map((t, i) => (
@@ -213,76 +273,79 @@ export default function EquityCurve({ data }) {
         })}
       </svg>
 
-      {/* Tooltip */}
-      {hover && hover.point && (
+      {/* Tooltip — 使用 Portal 渲染到 body，避免被下层卡片遮挡 */}
+      {tooltip && hoverPoint && createPortal(
         <div
-          className="tooltip"
+          className="curve-tooltip"
           style={{
-            left: Math.min(hover.svgX + 12, (containerRef.current?.clientWidth || 0) - 220),
-            top: Math.max(hover.svgY - 80, 10),
-            whiteSpace: 'normal',
-            minWidth: 200
+            left: tooltipPos.left,
+            top: tooltipPos.top,
           }}
         >
-          <div style={{ fontWeight: 700, marginBottom: '6px', color: 'var(--ink)' }}>{hover.point.date}</div>
+          <div style={{ fontWeight: 700, marginBottom: '6px', color: 'var(--ink)' }}>{hoverPoint.date}</div>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '3px' }}>
             <span style={{ color: 'var(--muted)' }}>{t('curve.tradesCount')}</span>
-            <span>{hover.point.trades || 0}</span>
+            <span>{hoverPoint.trades || 0}</span>
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '3px' }}>
             <span style={{ color: 'var(--muted)' }}>{t('curve.dayPnl')}</span>
-            <span style={{ color: hover.point.daily_profit >= 0 ? 'var(--green)' : 'var(--loss)', fontWeight: 600 }}>
-              {hover.point.daily_profit >= 0 ? '+' : ''}{fmt(hover.point.daily_profit)}
+            <span style={{ color: hoverPoint.daily_profit >= 0 ? 'var(--green)' : 'var(--loss)', fontWeight: 600 }}>
+              {hoverPoint.daily_profit >= 0 ? '+' : ''}{fmt(hoverPoint.daily_profit)}
             </span>
           </div>
-          {(hover.point.deposit > 0 || hover.point.withdrawal > 0 || hover.point.bonus > 0 || hover.point.bonus_loss > 0 || hover.point.bonus_expired > 0) && (
+          {(hoverPoint.deposit > 0 || hoverPoint.withdrawal > 0 || hoverPoint.bonus > 0 || hoverPoint.bonus_loss > 0 || hoverPoint.bonus_expired > 0) && (
             <>
-              {hover.point.deposit > 0 && (
+              {hoverPoint.deposit > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
                   <span style={{ color: 'var(--muted)' }}>{t('curve.deposit')}</span>
-                  <span style={{ color: 'var(--green)' }}>+{fmt(hover.point.deposit)}</span>
+                  <span style={{ color: 'var(--green)' }}>+{fmt(hoverPoint.deposit)}</span>
                 </div>
               )}
-              {hover.point.withdrawal > 0 && (
+              {hoverPoint.withdrawal > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
                   <span style={{ color: 'var(--muted)' }}>{t('curve.withdrawal')}</span>
-                  <span style={{ color: 'var(--loss)' }}>-{fmt(hover.point.withdrawal)}</span>
+                  <span style={{ color: 'var(--loss)' }}>-{fmt(hoverPoint.withdrawal)}</span>
                 </div>
               )}
-              {hover.point.bonus > 0 && (
+              {hoverPoint.bonus > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
                   <span style={{ color: 'var(--muted)' }}>{t('curve.bonus')}</span>
-                  <span style={{ color: 'var(--green)' }}>+{fmt(hover.point.bonus)}</span>
+                  <span style={{ color: 'var(--green)' }}>+{fmt(hoverPoint.bonus)}</span>
                 </div>
               )}
-              {hover.point.bonus_loss > 0 && (
+              {hoverPoint.bonus_loss > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
                   <span style={{ color: 'var(--muted)' }}>{t('curve.bonusLoss')}</span>
-                  <span style={{ color: 'var(--loss)' }}>-{fmt(hover.point.bonus_loss)}</span>
+                  <span style={{ color: 'var(--loss)' }}>-{fmt(hoverPoint.bonus_loss)}</span>
                 </div>
               )}
-              {hover.point.bonus_expired > 0 && (
+              {hoverPoint.bonus_expired > 0 && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
                   <span style={{ color: 'var(--muted)' }}>{t('curve.bonusExpired')}</span>
-                  <span style={{ color: 'var(--loss)' }}>-{fmt(hover.point.bonus_expired)}</span>
+                  <span style={{ color: 'var(--loss)' }}>-{fmt(hoverPoint.bonus_expired)}</span>
                 </div>
               )}
             </>
           )}
           <div style={{ height: 1, background: 'var(--border)', margin: '6px 0' }} />
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', marginBottom: '3px' }}>
-            <span style={{ color: 'var(--muted)' }}>{t('curve.cumulativePnl')}</span>
-            <span style={{ color: hover.point.net_profit >= 0 ? 'var(--green)' : 'var(--loss)', fontWeight: 600 }}>
-              {hover.point.net_profit >= 0 ? '+' : ''}{fmt(hover.point.net_profit)}
-            </span>
-          </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
             <span style={{ color: 'var(--muted)' }}>{t('curve.cumulativePnl')}</span>
-            <span style={{ fontWeight: 700, color: hover.point.net_profit >= 0 ? 'var(--green)' : 'var(--loss)' }}>
-              {fmt(hover.point.net_profit)}
+            <span style={{ fontWeight: 700, color: hoverPoint.net_profit >= 0 ? 'var(--green)' : 'var(--loss)' }}>
+              {hoverPoint.net_profit >= 0 ? '+' : ''}{fmt(hoverPoint.net_profit)}
             </span>
           </div>
-        </div>
+          {/* 当日变化指示条 */}
+          <div style={{
+            height: 3,
+            borderRadius: '2px',
+            marginTop: 8,
+            background: hoverPoint.daily_profit >= 0
+              ? `linear-gradient(90deg, var(--green), ${hoverPoint.daily_profit >= 0 ? 'var(--green)' : 'var(--loss)'})`
+              : `linear-gradient(90deg, var(--loss), var(--loss))`,
+            opacity: 0.6
+          }} />
+        </div>,
+        document.body
       )}
     </div>
   )
